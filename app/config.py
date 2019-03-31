@@ -78,6 +78,5 @@ class Config(object):
     def set_collection_params(self, **kwargs):
         self.params = {
             'casino': kwargs['casino'],
-            'break': kwargs.get('break', None),
             'collect': kwargs.get('collect', 100)
         }

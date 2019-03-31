@@ -17,9 +17,11 @@ class StrategyCommon(object):
             'starting_balance': results[0]['balance'],
             'closing_balance': results[-1]['balance'],
             'largest_bet': max([x['bet_amount'] for x in results]),
-            'longest_winning_streak': longest_win,
-            'longest_losing_streak': longest_lose
+            'win_ratio': round(len([x for x in results if x['status'] == 'win']) / len(results), 2) * 100,
+            'longest_streaks': '{}/{}'.format(longest_win, longest_lose)
         }
+
+        summary['total_profit'] = summary['closing_balance'] - summary['starting_balance']
 
         return summary
 
@@ -27,13 +29,13 @@ class StrategyCommon(object):
         summary = self.get_result_summary(results)
 
         t_headers = [
-            'Starting Balance', 'Closing Balance', 'Largest Bet', 'Longest Winning Streak',
-            'Longest Losing Streak'
+            'Starting Balance', 'Closing Balance', 'Largest Bet', 'Longest Streaks (W/L)',
+            'Win Ratio', 'Total Profit'
         ]
 
         t_data = [[
             summary['starting_balance'], summary['closing_balance'], summary['largest_bet'],
-            summary['longest_winning_streak'], summary['longest_losing_streak']
+            summary['longest_streaks'], summary['win_ratio'], summary['total_profit']
         ]]
 
         t = tabulate(t_data, t_headers, tablefmt='grid')
