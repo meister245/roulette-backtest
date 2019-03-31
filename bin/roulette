@@ -29,7 +29,9 @@ parser.add_argument('--backtest', action='store', type=str, default=None,
 
 args = parser.parse_args()
 
-config = Config(SRC_DIR, **vars(args))
+config = Config(SRC_DIR)
+config.set_params('test', **vars(args))
+
 service = ServiceController(config)
 
 

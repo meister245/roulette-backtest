@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import sys
+import argparse
+from os.path import dirname, realpath
+
+SRC_DIR = realpath(dirname(__file__) + '/../')
+sys.path.append(SRC_DIR)
+
+from app.config import Config
+from app.controller.service import ServiceController
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--casino', action='store', type=str, required=True,
+                    metavar='NAME', help='casino name - ex. betfair')
+parser.add_argument('--collect', action='store', type=float, default=1000,
+                    metavar='NUMBER', help='total number of numbers to collect')
+parser.add_argument('--divide_file', action='store', type=int, default=0,
+                    metavar='NUMBER', help='divide collection into multiple files after every N numbers collected')
+
+args = parser.parse_args()
+
+config = Config(SRC_DIR)
+config.set_params('collect', **vars(args))
+
+service = ServiceController(config)
+
+
+def start():
+    service.run_data_collection()
+
+
+if __name__ == '__main__':
+    try:
+        start()
+    except KeyboardInterrupt:
+        exit('process terminated by user')

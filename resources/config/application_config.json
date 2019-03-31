@@ -7,7 +7,7 @@
   "casino": {
     "betfair": {
       "api_url": "https://casino.betfair.com/api",
-      "table_name": ""
+      "table_name": "PP/BF Roulette"
     }
   }
 }

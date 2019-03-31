@@ -10,7 +10,7 @@ class Config(object):
 
     strategies = ['martingale', 'paroli', 'd_alembert', 'fibonacci', 'james_bond']
 
-    def __init__(self, src_dir, **kwargs):
+    def __init__(self, src_dir):
         self.params = None
         self.backtest = None
 
@@ -19,8 +19,6 @@ class Config(object):
 
         self.casino = self.get_application_config('casino')
         self.logging = self.get_application_config('logging')
-
-        self.set_test_params(**kwargs)
 
     @staticmethod
     def get_resources_dir(src_dir):
@@ -52,6 +50,16 @@ class Config(object):
         except OSError:
             exit('invalid path for backtest file: {}'.format(file_path))
 
+    def set_params(self, type, **kwargs):
+        if type == 'test':
+            self.set_test_params(**kwargs)
+
+        elif type == 'collect':
+            self.set_collection_params(**kwargs)
+
+        else:
+            exit('invalid type - {}'.format(type))
+
     def set_test_params(self, **kwargs):
         self.params = {
             'strategy': kwargs['strategy'],
@@ -67,9 +75,9 @@ class Config(object):
         if isinstance(file_name, str):
             self.backtest = self.get_backtest_file(file_name).split(',')
 
-    def set_collection_params(self, casino, **kwargs):
+    def set_collection_params(self, **kwargs):
         self.params = {
-            'casino': casino,
+            'casino': kwargs['casino'],
             'break': kwargs.get('break', None),
             'collect': kwargs.get('collect', 100)
         }
