@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--strategy', action='store', type=str, required=True,
                     help='bet strategy - ex: martingale')
+parser.add_argument('--mode', choices=['single', 'aggregate'], default='single',
+                    help='game mode selection')
 parser.add_argument('--bet_type', action='store', type=str,
                     help='bet types - ex: red,black,half_left,row_top')
 parser.add_argument('--bet_amount', action='store', type=float, default=0.20,
@@ -28,6 +30,9 @@ parser.add_argument('--backtest', action='store', type=str, default=None,
                     metavar='FILENAME', help='filename for backtesting strategy - ex: sample_numbers')
 
 args = parser.parse_args()
+
+if args.mode != 'single' and args.backtest is not None:
+    exit('backtesting is only available is SINGLE game mode')
 
 config = Config(SRC_DIR)
 config.set_params('test', **vars(args))

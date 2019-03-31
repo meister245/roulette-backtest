@@ -6,43 +6,76 @@ class StrategyCommon(object):
     def __init__(self):
         pass
 
-    def get_next_number(self, idx, backtest=None):
+    @staticmethod
+    def get_next_number(idx, backtest=None):
         return randint(0, 36) if backtest is None else backtest[idx]
+
+    @staticmethod
+    def get_aggregated_result_summary(results):
+        avg_winning_streak = round(sum([x['longest_winning_streak'] for x in results]) / len(results), 2)
+        avg_losing_streak = round(sum([x['longest_losing_streak'] for x in results]) / len(results), 2)
+
+        aggregated_summary = {
+            'total_games': len(results),
+            'avg_win_ratio': round(sum([x['win_ratio'] for x in results]) / len(results), 2),
+            'avg_streak': '{} / {}'.format(avg_winning_streak, avg_losing_streak),
+        }
+
+        return aggregated_summary
 
     def get_result_summary(self, results):
         longest_win, longest_lose = self.eval_longest_streak(results)
+        start_balance = results[0]['balance']
+        close_balance = results[-1]['balance']
 
         summary = {
             'cycles': len(results),
-            'starting_balance': results[0]['balance'],
-            'closing_balance': results[-1]['balance'],
+            'balance': '{} / {}'.format(start_balance, close_balance),
+            'balance_starting': start_balance,
+            'balance_closing': close_balance,
             'largest_bet': max([x['bet_amount'] for x in results]),
+            'total_profit': round(close_balance - start_balance, 2),
             'win_ratio': round(len([x for x in results if x['status'] == 'win']) / len(results), 2) * 100,
-            'longest_streaks': '{}/{}'.format(longest_win, longest_lose)
+            'longest_streaks': '{} / {}'.format(longest_win, longest_lose),
+            'longest_winning_streak': longest_win,
+            'longest_losing_streak': longest_lose,
         }
-
-        summary['total_profit'] = summary['closing_balance'] - summary['starting_balance']
 
         return summary
 
-    def print_result_summary(self, results):
-        summary = self.get_result_summary(results)
+    def print_aggregated_result_summary(self, results):
+        aggr_summary = self.get_aggregated_result_summary(results)
 
         t_headers = [
-            'Starting Balance', 'Closing Balance', 'Largest Bet', 'Longest Streaks (W/L)',
-            'Win Ratio', 'Total Profit'
+            'Total Games', 'Average Win Ratio', 'Average Streaks (W / L)', 'Average Profit Ratio'
         ]
 
         t_data = [[
-            summary['starting_balance'], summary['closing_balance'], summary['largest_bet'],
-            summary['longest_streaks'], summary['win_ratio'], summary['total_profit']
+            aggr_summary['total_games'], aggr_summary['avg_win_ratio'], aggr_summary['avg_streak']
         ]]
 
         t = tabulate(t_data, t_headers, tablefmt='grid')
 
         print(t)
 
-    def print_result_details(self, results):
+    def print_result_summary(self, results):
+        summary = self.get_result_summary(results)
+
+        t_headers = [
+            'Balance (S/C)', 'Total Profit', 'Streaks (W/L)', 'Win Ratio', 'Largest Bet',
+        ]
+
+        t_data = [[
+            summary['balance'], summary['total_profit'], summary['longest_streaks'],
+            summary['win_ratio'], summary['largest_bet']
+        ]]
+
+        t = tabulate(t_data, t_headers, tablefmt='grid')
+
+        print(t)
+
+    @staticmethod
+    def print_result_details(results):
         t_headers = [
             'Balance', 'Bet Type', 'Bet Amount', 'Number', 'Result', 'Profit'
         ]

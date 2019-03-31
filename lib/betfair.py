@@ -1,19 +1,31 @@
+import time
 import requests
 
 
 class Betfair(object):
     api_url = None
 
-    def __init__(self, **kwargs):
-        self.set_api_url(kwargs.get('api_url', 'https://casino.betfair.com/api'))
+    def __init__(self, api_url):
+        self.set_api_url(api_url)
 
     @classmethod
     def set_api_url(cls, api_url: str) -> None:
         cls.api_url = api_url
 
     @classmethod
-    def get_table_details(cls):
-        resp = requests.get(cls.api_url + '/tables-details', cookies=None)
+    def get_table_details(cls, retry_wait=5, max_retry=3):
+        try:
+            resp = requests.get(cls.api_url + '/tables-details')
+
+        except ValueError as e:
+            if max_retry <= 0:
+                raise ValueError(str(e))
+
+            max_retry -= 1
+            time.sleep(retry_wait)
+
+            return cls.get_table_details(retry_wait=retry_wait)
+
         return resp.json()
 
     @classmethod

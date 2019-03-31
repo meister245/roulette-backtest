@@ -15,7 +15,7 @@ class TaskFactory(object):
             exit('invalid casino name - {}'.format(casino_name))
 
         obj = TaskFactory.casino_mapping[casino_name]
-        return obj(**self.config.casino[casino_name])
+        return obj(self.config.casino[casino_name]['api_url'])
 
     def generate_strategy_object(self, strategy_name):
         if strategy_name.lower() not in self.config.strategies:

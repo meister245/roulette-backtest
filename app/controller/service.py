@@ -12,7 +12,24 @@ class ServiceController(object):
 
     def run_strategy_test(self):
         strategy_obj = self.factory.generate_strategy_object(self.config.params['strategy'])
-        strategy_obj.run(self.config.params)
+
+        if self.config.params['mode'] == 'single':
+            self.run_strategy_test_single(strategy_obj)
+
+        elif self.config.params['mode'] == 'aggregate':
+            self.run_strategy_test_aggregate(strategy_obj)
+
+        else:
+            exit('invalid game mode - {}'.format(self.config.params['mode']))
+
+    def run_strategy_test_single(self, strategy_obj):
+        results = strategy_obj.run_single(self.config.params)
+        strategy_obj.print_result_summary(results)
+        strategy_obj.print_result_details(results)
+
+    def run_strategy_test_aggregate(self, strategy_obj):
+        results = strategy_obj.run_aggregate(self.config.params)
+        strategy_obj.print_aggregated_result_summary(results)
 
     def run_data_collection(self):
         numbers = {}

@@ -62,6 +62,7 @@ class Config(object):
 
     def set_test_params(self, **kwargs):
         self.params = {
+            'mode': kwargs['mode'],
             'strategy': kwargs['strategy'],
             'bet_type': kwargs['bet_type'],
             'bet_amount': round(kwargs.get('bet_amount', 0.20), 2),
