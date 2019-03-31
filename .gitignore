@@ -1,0 +1,7 @@
+.idea/
+
+resources/backtest/*
+!resources/backtest/sample_numbers
+
+*.iml
+*.pyc
