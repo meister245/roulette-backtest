@@ -31,7 +31,7 @@ class StrategyMartingale(StrategyCommon):
             if current_balance <= 0:
                 break
 
-            bet_amount = test_params['bet_amount'] if res['status'] == 'win' else bet_amount * 2
+            bet_amount = self.set_new_bet_amount(res, bet_amount, test_params)
 
         return store.results
 
@@ -44,3 +44,7 @@ class StrategyMartingale(StrategyCommon):
             aggregate_results.append(result_summary)
 
         return aggregate_results
+
+    @staticmethod
+    def set_new_bet_amount(res, bet_amount, test_params):
+        return test_params['bet_amount'] if res['status'] == 'win' else bet_amount * 2

@@ -1,10 +1,11 @@
 from app.strategy.martingale import StrategyMartingale
+from app.strategy.paroli import StrategyParoli
 
 from lib.betfair import Betfair
 
 
 class TaskFactory(object):
-    strategy_mapping = {'martingale': StrategyMartingale}
+    strategy_mapping = {'martingale': StrategyMartingale, 'paroli': StrategyParoli}
     casino_mapping = {'betfair': Betfair}
 
     def __init__(self, config):
