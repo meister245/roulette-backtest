@@ -8,7 +8,7 @@ class Config(object):
 
     bet_types.extend(['number_{}'.format(x) for x in range(36)])
 
-    strategies = ['martingale', 'paroli', 'd_alembert', 'fibonacci', 'james_bond']
+    strategies = ['martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond']
 
     def __init__(self, src_dir):
         self.params = None
