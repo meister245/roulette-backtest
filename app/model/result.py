@@ -91,11 +91,11 @@ class ResultModel(object):
         summary = self.get_result_summary()
 
         headers = [
-            'Balance (S/C)', 'Total Profit', 'Streaks (W/L)', 'Win Ratio (%)', 'Largest Bet',
+            'Total Games', 'Balance (S/C)', 'Total Profit', 'Streaks (W/L)', 'Win Ratio (%)', 'Largest Bet',
         ]
 
         data = [[
-            summary['balance'], summary['profit_total'], summary['longest_streaks'],
+            summary['cycles'], summary['balance'], summary['profit_total'], summary['longest_streaks'],
             summary['win_ratio'], summary['largest_bet']
         ]]
 
