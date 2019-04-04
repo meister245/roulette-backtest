@@ -1,17 +1,14 @@
 import os
 import json
 
+from app.model.result import ResultModel
+
 
 class Config(object):
-    bet_types = ['red', 'black', 'row_top', 'row_middle', 'row_bottom', 'column_left', 'column_middle',
-                 'column_right', 'even', 'odd', 'half_left', 'half_right']
-
-    bet_types.extend(['number_{}'.format(x) for x in range(36)])
-
+    bet_types = ResultModel.bet_mapping.keys()
     strategies = ['martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond']
 
     def __init__(self, src_dir):
-        self.params = None
         self.backtest = None
 
         self.src_dir = src_dir
@@ -49,35 +46,3 @@ class Config(object):
 
         except OSError:
             exit('invalid path for backtest file: {}'.format(file_path))
-
-    def set_params(self, type, **kwargs):
-        if type == 'test':
-            self.set_test_params(**kwargs)
-
-        elif type == 'collect':
-            self.set_collection_params(**kwargs)
-
-        else:
-            exit('invalid type - {}'.format(type))
-
-    def set_test_params(self, **kwargs):
-        self.params = {
-            'mode': kwargs['mode'],
-            'strategy': kwargs['strategy'],
-            'bet_type': kwargs['bet_type'],
-            'bet_amount': round(kwargs.get('bet_amount', 0.20), 2),
-            'balance': round(kwargs.get('balance', 500), 2),
-            'table_limit': round(kwargs.get('table_limit', 150), 2),
-            'cycles': kwargs.get('cycles', 100)
-        }
-
-        file_name = kwargs.get('backtest', None)
-
-        if isinstance(file_name, str):
-            self.backtest = self.get_backtest_file(file_name).split(',')
-
-    def set_collection_params(self, **kwargs):
-        self.params = {
-            'casino': kwargs['casino'],
-            'collect': kwargs.get('collect', 100)
-        }

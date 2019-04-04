@@ -16,36 +16,52 @@ parser.add_argument('--strategy', action='store', type=str, required=True,
                     help='bet strategy - ex: martingale')
 parser.add_argument('--mode', choices=['single', 'aggregate'], default='single',
                     help='game mode selection')
-parser.add_argument('--bet_type', action='store', type=str,
+parser.add_argument('--bet_type', action='store', type=str, default=None,
                     help='bet types - ex: red,black,half_left,row_top')
-parser.add_argument('--bet_amount', action='store', type=float, default=0.20,
+parser.add_argument('--bet_amount', action='store', type=str, default=None,
                     metavar='NUMBER', help='money to bet on bet types')
 parser.add_argument('--balance', action='store', type=float, default=1000.0,
                     metavar='NUMBER', help='starting balance')
-parser.add_argument('--cycles', action='store', type=int, default=500,
+parser.add_argument('--cycles', action='store', type=int, default=20,
                     metavar='NUMBER', help='number of games played')
-parser.add_argument('--table_limit', action='store', type=int, default=150,
+parser.add_argument('--table_limit', action='store', type=float, default=150.0,
                     metavar='NUMBER', help='maximum sum of bet money table accepts')
 parser.add_argument('--backtest', action='store', type=str, default=None,
                     metavar='FILENAME', help='filename for backtesting strategy - ex: sample_numbers')
 
-args = parser.parse_args()
+params = vars(parser.parse_args())
 
-if args.mode != 'single' and args.backtest is not None:
+if params['mode'] != 'single' and params['backtest'] is not None:
     exit('backtesting is only available is SINGLE game mode')
 
 config = Config(SRC_DIR)
-config.set_params('test', **vars(args))
-
 service = ServiceController(config)
 
 
-def start():
-    service.run_strategy_test()
+def parse_bet(bet_type, bet_amount):
+    if bet_type is None and bet_amount is None:
+        return None
+
+    elif bet_type is None or bet_amount is None:
+        exit('missing bet parameter - {} - {}'.format(bet_type, bet_amount))
+
+    elif isinstance(bet_type, str) and isinstance(bet_amount, str):
+        bet_types = [str(x) for x in bet_type.split(',')]
+        bet_amount = [float(x) for x in bet_amount.split(',')]
+
+        if len(bet_types) != len(bet_amount):
+            exit('mismatching bet type - bet amount')
+
+        return {bet_types[x]: bet_amount[x] for x in range(len(bet_types))}
+
+    else:
+        exit('invalid params - {} - {}'.format(bet_type, bet_amount))
 
 
 if __name__ == '__main__':
     try:
-        start()
+        bets = parse_bet(params.pop('bet_type'), params.pop('bet_amount'))
+        service.run_strategy_test(bets, **params)
+
     except KeyboardInterrupt:
         exit('process terminated by user')

@@ -1,12 +1,20 @@
-from app.strategy.martingale import StrategyMartingale
+from app.strategy.martingale import StrategyCommon
 
 
-class StrategyParoli(StrategyMartingale):
+class StrategyParoli(StrategyCommon):
     def __init__(self, backtest):
-        self.backtest = backtest
-
-        StrategyMartingale.__init__(self, backtest)
+        StrategyCommon.__init__(self, backtest)
 
     @staticmethod
-    def set_new_bet_amount(res, bet_amount, test_params):
-        return bet_amount * 2 if res['status'] == 'win' else test_params['bet_amount']
+    def set_new_bets(status, current_bets, original_bets, **kwargs):
+        if status == 'lose':
+            return original_bets
+
+        elif status == 'null':
+            return current_bets
+
+        if sum([x for x in current_bets.values()]) * 2 > kwargs.get('table_limit', 150.0):
+            return current_bets
+
+        else:
+            return {k: round(v * 2, 2) for k, v in current_bets.items()}

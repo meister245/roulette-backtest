@@ -10,36 +10,37 @@ class ServiceController(object):
 
         self.factory = TaskFactory(config)
 
-    def run_strategy_test(self):
-        strategy_obj = self.factory.generate_strategy_object(self.config.params['strategy'])
+    def run_strategy_test(self, bets: dict, mode: str, strategy: str, **kwargs) -> None:
+        strategy_obj = self.factory.generate_strategy_object(strategy)
 
-        if self.config.params['mode'] == 'single':
-            self.run_strategy_test_single(strategy_obj)
+        if mode == 'single':
+            self.run_strategy_test_single(strategy_obj, bets, **kwargs)
 
-        elif self.config.params['mode'] == 'aggregate':
-            self.run_strategy_test_aggregate(strategy_obj)
+        elif mode == 'aggregate':
+            self.run_strategy_test_aggregate(strategy_obj, bets, **kwargs)
 
         else:
             exit('invalid game mode - {}'.format(self.config.params['mode']))
 
-    def run_strategy_test_single(self, strategy_obj):
-        results = strategy_obj.run_single(self.config.params)
-        strategy_obj.print_result_summary(results)
-        strategy_obj.print_result_details(results)
+    def run_strategy_test_single(self, strategy_obj, bets, **kwargs):
+        store = strategy_obj.run_single(bets, **kwargs)
+        store.print_result_summary()
+        store.print_result_details()
 
-    def run_strategy_test_aggregate(self, strategy_obj):
-        results = strategy_obj.run_aggregate(self.config.params)
+    def run_strategy_test_aggregate(self, strategy_obj, bets, **kwargs):
+        result_summaries = strategy_obj.run_aggregate(bets, **kwargs)
+        results = strategy_obj.get_aggregated_result_summary(result_summaries)
         strategy_obj.print_aggregated_result_summary(results)
 
-    def run_data_collection(self):
+    def run_data_collection(self, **kwargs):
         numbers = {}
 
-        casino_obj = self.factory.get_casino(self.config.params['casino'])
-        table_name = self.config.casino[self.config.params['casino']]['table_name']
+        casino_obj = self.factory.get_casino(kwargs['casino'])
+        table_name = self.config.casino[kwargs['casino']]['table_name']
         backtest_dir = self.config.resource_dir + '/backtest'
 
         file_name = '{}_{}_{}'.format(
-            self.config.params['casino'], int(self.config.params['collect']), int(time.time())
+            kwargs['casino'], int(kwargs['collect']), int(time.time())
         )
 
         while True:
@@ -53,7 +54,7 @@ class ServiceController(object):
                 sorted_dict = collections.OrderedDict(sorted(numbers.items()))
                 f.write(','.join([str(x) for x in sorted_dict.values()]))
 
-            if len(numbers) >= self.config.params['collect']:
+            if len(numbers) >= kwargs['collect']:
                 break
 
             time.sleep(60)

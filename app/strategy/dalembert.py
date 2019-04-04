@@ -1,21 +1,25 @@
-from app.strategy.martingale import StrategyMartingale
+from app.strategy.common import StrategyCommon
 
 
-class StrategyDalembert(StrategyMartingale):
+class StrategyDalembert(StrategyCommon):
     def __init__(self, backtest):
-        self.backtest = backtest
-
-        StrategyMartingale.__init__(self, backtest)
+        StrategyCommon.__init__(self, backtest)
 
     @staticmethod
-    def set_new_bet_amount(res, bet_amount, test_params):
-        if res['status'] == 'win':
+    def set_new_bets(status, current_bets, original_bets, **kwargs):
+        new_bets = {}
 
-            if bet_amount == test_params['bet_amount']:
-                return test_params['bet_amount']
+        if status == 'win' and current_bets == original_bets:
+            return original_bets
 
-            else:
-                return bet_amount - test_params['bet_amount']
+        elif status == 'win' and current_bets != original_bets:
+            for k, v in current_bets.items():
+                new_bets[k] = round(v - original_bets[k], 2)
+
+            return new_bets
 
         else:
-            return bet_amount + test_params['bet_amount']
+            for k, v in current_bets.items():
+                new_bets[k] = round(v + original_bets[k], 2)
+
+            return new_bets
