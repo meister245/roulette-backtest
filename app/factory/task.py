@@ -1,6 +1,6 @@
-from app.strategy.dalembert import StrategyDalembert
-from app.strategy.martingale import StrategyMartingale
-from app.strategy.paroli import StrategyParoli
+from app.strategy.classic.dalembert import StrategyDalembert
+from app.strategy.classic.martingale import StrategyMartingale
+from app.strategy.classic.paroli import StrategyParoli
 
 from lib.betfair import Betfair
 

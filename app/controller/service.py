@@ -20,7 +20,7 @@ class ServiceController(object):
             self.run_strategy_test_aggregate(strategy_obj, bets, **kwargs)
 
         else:
-            exit('invalid game mode - {}'.format(self.config.params['mode']))
+            exit('invalid game mode - {}'.format(kwargs['mode']))
 
     def run_strategy_test_single(self, strategy_obj, bets, **kwargs):
         store = strategy_obj.run_single(bets, **kwargs)

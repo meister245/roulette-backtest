@@ -1,4 +1,4 @@
-from app.strategy.martingale import StrategyCommon
+from app.strategy.classic.martingale import StrategyCommon
 
 
 class StrategyParoli(StrategyCommon):
