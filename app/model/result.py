@@ -47,7 +47,7 @@ class ResultModel(object):
     payout_mapping = {
         RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1, DOZEN_LEFT: 2,
         DOZEN_MIDDLE: 2, DOZEN_RIGHT: 2, COLUMN_TOP: 2, COLUMN_MIDDLE: 2, COLUMN_BOTTOM: 2,
-        LINE: 5, CORNER: 11, FOUR: 11, STREET: 17, STRAIGHT: 35
+        LINE: 5, CORNER: 8, FOUR: 8, STREET: 11, SPLIT: 17, STRAIGHT: 35
     }
 
     def __init__(self):

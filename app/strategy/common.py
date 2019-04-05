@@ -53,14 +53,18 @@ class StrategyCommon(object):
 
     @staticmethod
     def get_aggregated_result_summary(results):
-        avg_winning_streak = round(sum([x['longest_win_streak'] for x in results]) / len(results), 2)
+        avg_profit_ratio = round(sum([x['profit_ratio'] for x in results]) / len(results), 2)
+        avg_profit_total = round(sum([x['profit_total'] for x in results]) / len(results), 2)
         avg_losing_streak = round(sum([x['longest_lose_streak'] for x in results]) / len(results), 2)
+        avg_winning_streak = round(sum([x['longest_win_streak'] for x in results]) / len(results), 2)
+        avg_win_ratio = round(sum([x['win_ratio'] for x in results]) / len(results), 2)
 
         aggregated_summary = {
             'total_games': len(results),
-            'avg_win_ratio': round(sum([x['win_ratio'] for x in results]) / len(results), 2),
+            'avg_win_ratio': avg_win_ratio,
             'avg_streak': '{} / {}'.format(avg_winning_streak, avg_losing_streak),
-            'avg_profit_ratio': round(sum([x['profit_ratio'] for x in results]) / len(results), 2)
+            'avg_profit_ratio': avg_profit_ratio,
+            'avg_profit_total': avg_profit_total
         }
 
         return aggregated_summary
@@ -82,12 +86,12 @@ class StrategyCommon(object):
     @classmethod
     def print_aggregated_result_summary(cls, aggr_summary):
         headers = [
-            'Total Games', 'Avg. Win Ratio (%)', 'Average Streaks (W/L)', 'Avg. Profit Ratio (%)'
+            'Total Games', 'Avg. Win Ratio (%)', 'Avg. Streaks (W/L)', 'Avg. Profit Ratio (%)', 'Avg. Profit'
         ]
 
         data = [[
             aggr_summary['total_games'], aggr_summary['avg_win_ratio'], aggr_summary['avg_streak'],
-            aggr_summary['avg_profit_ratio']
+            aggr_summary['avg_profit_ratio'], aggr_summary['avg_profit_total']
         ]]
 
         print(cls.tabulate_data(headers, data))
