@@ -6,7 +6,6 @@ from app.model.result import ResultModel
 
 class Config(object):
     bet_types = ResultModel.bet_mapping.keys()
-    strategies = ['martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond']
 
     def __init__(self, src_dir):
         self.backtest = None

@@ -102,7 +102,14 @@ class ResultModel(object):
 
         for bet_type, amount in bets.items():
             if bet_type in win_bet_types:
-                profit += amount * cls.payout_mapping[bet_type]
+                name = bet_type.split('_', 1).pop(0)
+
+                if name in ['street', 'line', 'corner', 'split']:
+                    profit += amount * cls.payout_mapping[name]
+
+                else:
+                    profit += amount * cls.payout_mapping[bet_type]
+
                 profit += amount
 
         return round(profit, 2)

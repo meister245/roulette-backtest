@@ -15,9 +15,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--strategy', action='store', type=str, required=True,
                     help='bet strategy - ex: martingale')
 parser.add_argument('--mode', choices=['single', 'aggregate'], default='single',
-                    help='game mode selection')
+                    metavar='MODE', help='game mode selection')
 parser.add_argument('--bet_type', action='store', type=str, default=None,
-                    help='bet types - ex: red,black,half_left,row_top')
+                    metavar='NAME', help='bet types - ex: red, black, low, high')
 parser.add_argument('--bet_amount', action='store', type=str, default=None,
                     metavar='NUMBER', help='money to bet on bet types')
 parser.add_argument('--balance', action='store', type=float, default=1000.0,
@@ -42,8 +42,9 @@ def parse_bet(bet_type, bet_amount):
     if bet_type is None and bet_amount is None:
         return None
 
-    elif bet_type is None or bet_amount is None:
-        exit('missing bet parameter - {} - {}'.format(bet_type, bet_amount))
+    elif bet_type is None and isinstance(bet_amount, str):
+        bet_amount = [float(x) for x in bet_amount.split(',')]
+        return bet_amount.pop()
 
     elif isinstance(bet_type, str) and isinstance(bet_amount, str):
         bet_types = [str(x) for x in bet_type.split(',')]

@@ -6,11 +6,16 @@ from tabulate import tabulate
 
 
 class StrategyCommon(object):
+    strategies = ['martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond', 'romanosky']
+
     def __init__(self, backtest):
         self.backtest = backtest
 
     def run_single(self, bets, **kwargs):
-        store = ResultModel()
+        store = self.get_result_model()
+
+        if not isinstance(bets, dict):
+            exit('invalid bet structure for strategy')
 
         original_bets, current_bets = bets, bets
 
@@ -60,6 +65,20 @@ class StrategyCommon(object):
 
         return aggregated_summary
 
+    def get_cycles(self, cycles):
+        return len(self.backtest) if self.backtest is not None and len(self.backtest) < cycles else cycles
+
+    def get_next_number(self, idx):
+        return self.get_random_number() if self.backtest is None else self.backtest[idx]
+
+    @staticmethod
+    def get_random_number():
+        return randint(0, 36)
+
+    @staticmethod
+    def get_result_model():
+        return ResultModel()
+
     @classmethod
     def print_aggregated_result_summary(cls, aggr_summary):
         headers = [
@@ -72,16 +91,6 @@ class StrategyCommon(object):
         ]]
 
         print(cls.tabulate_data(headers, data))
-
-    def get_next_number(self, idx):
-        return self.get_random_number() if self.backtest is None else self.backtest[idx]
-
-    def get_cycles(self, cycles):
-        return len(self.backtest) if self.backtest is not None and len(self.backtest) < cycles else cycles
-
-    @staticmethod
-    def get_random_number():
-        return randint(0, 36)
 
     @staticmethod
     def set_new_bets(status, current_bets, original_bets, **kwargs):
