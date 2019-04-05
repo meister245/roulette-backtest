@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 
 class StrategyCommon(object):
-    strategies = ['martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond', 'romanosky']
+    strategies = ('martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond', 'romanosky', 'kavouras')
 
     def __init__(self, backtest):
         self.backtest = backtest
