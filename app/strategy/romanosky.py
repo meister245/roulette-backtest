@@ -20,7 +20,7 @@ class RomanoskyStrategy(StrategyCommon):
         if not isinstance(bets, (int, float)):
             exit('invalid bet structure for strategy')
 
-        current_bets = self.get_romanovsky_bets(bets)
+        current_bets = self.get_romanosky_bets(bets)
 
         balance = kwargs['balance']
         cycles = self.get_cycles(kwargs['cycles'])
@@ -40,7 +40,7 @@ class RomanoskyStrategy(StrategyCommon):
         return store
 
     @classmethod
-    def get_romanovsky_bets(cls, bet_amount):
+    def get_romanosky_bets(cls, bet_amount):
         bets = {}
 
         combination = cls.bet_combinations[0]

@@ -23,6 +23,8 @@ class ResultModel(object):
         VOISONS: [22, 18, 29, 7, 28, 19, 4, 21, 2, 25],
         ZERO: [12, 35, 3, 26, 0, 32, 15],
 
+        FOUR: [(0, 1, 2, 3)],
+
         STREET: [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12), (13, 14, 15), (16, 17, 18), (19, 20, 21),
                  (22, 23, 24), (25, 26, 27), (28, 29, 30), (31, 32, 33), (34, 35, 36)],
 
@@ -104,7 +106,7 @@ class ResultModel(object):
             if bet_type in win_bet_types:
                 name = bet_type.split('_', 1).pop(0)
 
-                if name in ['street', 'line', 'corner', 'split']:
+                if name in ['street', 'line', 'corner', 'split', 'four']:
                     profit += amount * cls.payout_mapping[name]
 
                 else:
