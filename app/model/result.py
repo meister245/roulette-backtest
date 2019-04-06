@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 from tabulate import tabulate
@@ -55,18 +56,21 @@ class ResultModel(object):
     def __init__(self):
         self.results = []
 
-    def get_result(self, number: int, bets: dict, balance: float) -> dict:
+    def get_result(self, number: int, bets: dict, balance: float, idle: bool) -> dict:
         win_types = self.get_win_types(number)
+
+        bet_amount = sum([x for x in bets.values()])
+        bet_result = ['{} - {} - {}'.format(round(v, 2), 'W' if k in win_types else 'L', k) for k, v in bets.items()]
+
         profit = self.calculate_profit(bets, win_types)
-        status = 'null' if profit == 0 else 'lose' if profit <= 0 else 'win'
+        status = self.get_result_status(profit, idle)
 
         result = {
             'number': number,
             'balance_start': balance,
-            'balance_close': round(balance + profit, 2),
-            'bet_amount': sum([x for x in bets.values()]),
-            'bet_result': ['{} - {} - {}'.format(round(v, 2), 'W' if k in win_types else 'L', k) for k, v in
-                           bets.items()],
+            'balance_close': balance if idle else round(balance + profit, 2),
+            'bet_amount': bet_amount,
+            'bet_result': bet_result,
             'profit': profit,
             'status': status,
             'win_types': win_types,
@@ -76,11 +80,22 @@ class ResultModel(object):
 
         return result
 
+    @staticmethod
+    def get_result_status(profit, idle):
+        if profit == 0:
+            return 'null_idle' if idle else 'null'
+
+        elif profit < 0:
+            return 'lose_idle' if idle else 'lose'
+
+        else:
+            return 'win_idle' if idle else 'win'
+
     def get_result_summary(self):
         balance_start = self.results[0]['balance_start']
         balance_close = self.results[-1]['balance_close']
         longest_win, longest_lose = self.eval_longest_streak(self.results)
-        win_ratio = len([x for x in self.results if x['status'] == 'win']) / len(self.results) * 100
+        win_ratio = self.get_win_ratio()
 
         summary = {
             'cycles': len(self.results),
@@ -138,11 +153,25 @@ class ResultModel(object):
         data = []
 
         for x in self.results:
+            if 'idle' in x['status']:
+                x['profit'] = 0
+                x['bet_amount'] = 0
+                x['bet_result'] = [re.sub(r'[0-9]{,5}\.[0-9]{,2}', '0', x) for x in x['bet_result']]
+
             data.append([
                 x['balance_close'], '\n'.join(x['bet_result']), x['bet_amount'], x['number'], x['status'], x['profit']
             ])
 
         print(self.tabulate_data(headers, data))
+
+    def get_win_ratio(self):
+        win_results_count = len([x for x in self.results if x['status'] == 'win'])
+        all_results_count = len([x for x in self.results if x['status'] in ('win', 'lose', 'null')])
+
+        if all_results_count == 0:
+            return 0
+        else:
+            return win_results_count / all_results_count * 100
 
     @classmethod
     def get_win_types(cls, number: int) -> List[str]:

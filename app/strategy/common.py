@@ -6,6 +6,8 @@ from tabulate import tabulate
 
 
 class StrategyCommon(object):
+    switch_idle_start = True
+
     strategies = ('martingale', 'paroli', 'dalembert', 'fibonacci', 'james_bond', 'romanosky', 'kavouras')
 
     def __init__(self, backtest):
@@ -21,6 +23,7 @@ class StrategyCommon(object):
 
         balance = kwargs['balance']
         cycles = self.get_cycles(kwargs['cycles'])
+        idle_start, idle_lose = kwargs.get('idle_start', 0), kwargs.get('idle_lose', 0)
 
         if current_bets is None or sum(current_bets.values()) <= 0:
             exit('invalid bet - {}'.format(bets))
@@ -30,12 +33,43 @@ class StrategyCommon(object):
                 break
 
             number = self.get_next_number(idx)
-            result = store.get_result(number, current_bets, balance)
+            idle = self.get_idle_status(store, idle_start, idle_lose)
+            result = store.get_result(number, current_bets, balance, idle)
 
             balance = result['balance_close']
             current_bets = self.set_new_bets(result['status'], current_bets, original_bets, **kwargs)
 
         return store
+
+    @classmethod
+    def get_idle_status(cls, store, idle_start, idle_lose):
+        if idle_start > 0 and cls.switch_idle_start:
+            if len(store.results) < idle_start:
+                return True
+
+            lose_consecutive = 0
+
+            for x in store.results:
+                if x['status'] in ['lose_idle', 'lose']:
+                    lose_consecutive += 1
+                else:
+                    lose_consecutive -= lose_consecutive
+
+                if lose_consecutive > idle_start:
+                    break
+
+            if lose_consecutive < idle_start:
+                return True
+
+            cls.switch_idle_start = False
+
+        if idle_lose > 0:
+            last_n_results = [x for x in store.results[-idle_lose:] if x['status'] in ['lose_idle', 'lose']]
+
+            if len(last_n_results) < idle_lose:
+                return True
+
+        return False
 
     def run_aggregate(self, bets, **kwargs):
         aggregate_results = []
