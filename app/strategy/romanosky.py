@@ -21,6 +21,7 @@ class RomanoskyStrategy(StrategyCommon):
             exit('invalid bet structure for strategy')
 
         current_bets = self.get_romanosky_bets(bets)
+        idle_start, idle_lose = kwargs.get('idle_start', 0), kwargs.get('idle_lose', 0)
 
         balance = kwargs['balance']
         cycles = self.get_cycles(kwargs['cycles'])
@@ -33,7 +34,8 @@ class RomanoskyStrategy(StrategyCommon):
                 break
 
             number = self.get_next_number(idx)
-            result = store.get_result(number, current_bets, balance)
+            idle = self.get_idle_status(store, idle_start, idle_lose)
+            result = store.get_result(number, current_bets, balance, idle)
 
             balance = result['balance_close']
 

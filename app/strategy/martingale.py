@@ -7,10 +7,10 @@ class StrategyMartingale(StrategyCommon):
 
     @staticmethod
     def set_new_bets(status, current_bets, original_bets, **kwargs):
-        if status == 'win':
+        if status in ['win', 'win_idle', 'lose_idle']:
             return original_bets
 
-        elif status == 'null':
+        elif status in ['null', 'null_idle']:
             return current_bets
 
         if sum([x for x in current_bets.values()]) * 2 > kwargs.get('table_limit', 150.0):
