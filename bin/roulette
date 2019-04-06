@@ -30,6 +30,8 @@ parser.add_argument('--idle_start', action='store', type=int, default=0,
                     metavar='NUMBER', help='start playing after N losing cycles')
 parser.add_argument('--idle_lose', action='store', type=int, default=0,
                     metavar='NUMBER', help='only play after every N losing cycles')
+parser.add_argument('--idle_win', action='store', type=int, default=0,
+                    metavar='NUMBER', help='revert back to idling after N consecutive wins')
 parser.add_argument('--backtest', action='store', type=str, default=None,
                     metavar='FILENAME', help='filename for backtesting strategy')
 

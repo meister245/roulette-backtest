@@ -53,6 +53,10 @@ class ResultModel(object):
         LINE: 5, CORNER: 8, FOUR: 8, STREET: 11, SPLIT: 17, STRAIGHT: 35
     }
 
+    result_mapping = {
+        'win': 'W', 'lose': 'L', 'win_idle': 'WI', 'lose_idle': 'LI', 'null': 'N', 'null_idle': 'NI'
+    }
+
     def __init__(self):
         self.results = []
 
@@ -107,7 +111,7 @@ class ResultModel(object):
             'longest_win_streak': longest_win,
             'longest_lose_streak': longest_lose,
             'profit_total': round(balance_close - balance_start, 2),
-            'profit_ratio': round(balance_close / balance_start * 100, 2),
+            'profit_ratio': round(balance_close / balance_start - 1, 2) * 100,
             'win_ratio': round(win_ratio, 2)
         }
 
@@ -163,6 +167,14 @@ class ResultModel(object):
             ])
 
         print(self.tabulate_data(headers, data))
+
+    def get_result_pattern(self):
+        pattern = []
+
+        for x in self.results:
+            pattern.append(self.result_mapping[x['status']])
+
+        return tuple(pattern)
 
     def get_win_ratio(self):
         win_results_count = len([x for x in self.results if x['status'] == 'win'])

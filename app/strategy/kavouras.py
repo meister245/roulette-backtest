@@ -18,7 +18,6 @@ class KavourasStrategy(StrategyCommon):
 
         balance = kwargs['balance']
         cycles = self.get_cycles(kwargs['cycles'])
-        idle_start, idle_lose = kwargs.get('idle_start', 0), kwargs.get('idle_lose', 0)
 
         if current_bets is None or sum(current_bets.values()) <= 0:
             exit('invalid bet - {}'.format(bets))
@@ -28,7 +27,7 @@ class KavourasStrategy(StrategyCommon):
                 break
 
             number = self.get_next_number(idx)
-            idle = self.get_idle_status(store, idle_start, idle_lose)
+            idle = self.get_idle_status(store, **kwargs)
             result = store.get_result(number, current_bets, balance, idle)
 
             balance = result['balance_close']
