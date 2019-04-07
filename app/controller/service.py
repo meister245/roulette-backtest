@@ -24,13 +24,12 @@ class ServiceController(object):
 
     def run_strategy_test_single(self, strategy_obj, bets, **kwargs):
         store = strategy_obj.run_single(bets, **kwargs)
-        store.print_result_summary()
-        store.print_result_details()
+        strategy_obj.display.print_result_summary(store.results)
+        strategy_obj.display.print_result_details(store.results)
 
     def run_strategy_test_aggregate(self, strategy_obj, bets, **kwargs):
-        result_summaries = strategy_obj.run_aggregate(bets, **kwargs)
-        results = strategy_obj.get_aggregated_result_summary(result_summaries)
-        strategy_obj.print_aggregated_result_summary(results)
+        summaries = strategy_obj.run_aggregate(bets, **kwargs)
+        strategy_obj.display.print_result_summary_aggregated(summaries)
 
     def run_data_collection(self, **kwargs):
         numbers = {}

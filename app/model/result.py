@@ -1,7 +1,4 @@
-import re
 from typing import List
-
-from tabulate import tabulate
 
 TIER, ORPHELINS, VOISONS, ZERO = 'tier', 'orphelins', 'voisons', 'zero'
 RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
@@ -95,28 +92,6 @@ class ResultModel(object):
         else:
             return 'win_idle' if idle else 'win'
 
-    def get_result_summary(self):
-        balance_start = self.results[0]['balance_start']
-        balance_close = self.results[-1]['balance_close']
-        longest_win, longest_lose = self.eval_longest_streak(self.results)
-        win_ratio = self.get_win_ratio()
-
-        summary = {
-            'cycles': len(self.results),
-            'balance': '{} / {}'.format(balance_start, balance_close),
-            'balance_start': balance_start,
-            'balance_close': balance_close,
-            'largest_bet': max([x['bet_amount'] for x in self.results]),
-            'longest_streaks': '{} / {}'.format(longest_win, longest_lose),
-            'longest_win_streak': longest_win,
-            'longest_lose_streak': longest_lose,
-            'profit_total': round(balance_close - balance_start, 2),
-            'profit_ratio': round(balance_close / balance_start - 1, 2) * 100,
-            'win_ratio': round(win_ratio, 2)
-        }
-
-        return summary
-
     @classmethod
     def calculate_profit(cls, bets: dict, win_bet_types: List[str]) -> float:
         profit = 0 - sum([x for x in bets.values()])
@@ -135,39 +110,6 @@ class ResultModel(object):
 
         return round(profit, 2)
 
-    def print_result_summary(self):
-        summary = self.get_result_summary()
-
-        headers = [
-            'Total Games', 'Balance (S/C)', 'Total Profit', 'Streaks (W/L)', 'Win Ratio (%)', 'Largest Bet',
-        ]
-
-        data = [[
-            summary['cycles'], summary['balance'], summary['profit_total'], summary['longest_streaks'],
-            summary['win_ratio'], summary['largest_bet']
-        ]]
-
-        print(self.tabulate_data(headers, data))
-
-    def print_result_details(self):
-        headers = [
-            'Balance', 'Bet Result', 'Bet Amount', 'Number', 'Result', 'Profit'
-        ]
-
-        data = []
-
-        for x in self.results:
-            if 'idle' in x['status']:
-                x['profit'] = 0
-                x['bet_amount'] = 0
-                x['bet_result'] = [re.sub(r'[0-9]{,5}\.[0-9]{,2}', '0', x) for x in x['bet_result']]
-
-            data.append([
-                x['balance_close'], '\n'.join(x['bet_result']), x['bet_amount'], x['number'], x['status'], x['profit']
-            ])
-
-        print(self.tabulate_data(headers, data))
-
     def get_result_pattern(self):
         pattern = []
 
@@ -175,15 +117,6 @@ class ResultModel(object):
             pattern.append(self.result_mapping[x['status']])
 
         return tuple(pattern)
-
-    def get_win_ratio(self):
-        win_results_count = len([x for x in self.results if x['status'] == 'win'])
-        all_results_count = len([x for x in self.results if x['status'] in ('win', 'lose', 'null')])
-
-        if all_results_count == 0:
-            return 0
-        else:
-            return win_results_count / all_results_count * 100
 
     @classmethod
     def get_win_types(cls, number: int) -> List[str]:
@@ -251,34 +184,3 @@ class ResultModel(object):
                 win_bet_types.append('{}_{}_{}_{}_{}_{}_{}'.format(LINE, x[0], x[1], x[2], x[3], x[4], x[5]))
 
         return win_bet_types
-
-    @staticmethod
-    def tabulate_data(headers, data, table_format='grid'):
-        return tabulate(data, headers, tablefmt=table_format)
-
-    @staticmethod
-    def eval_longest_streak(results):
-        longest_win = 0
-        longest_losing = 0
-
-        t_win = 0
-        t_lose = 0
-
-        for x in results:
-            if x['status'] == 'win':
-                t_win += 1
-
-                if t_lose >= longest_losing:
-                    longest_losing = t_lose
-
-                t_lose = 0
-
-            elif x['status'] == 'lose':
-                t_lose += 1
-
-                if t_win >= longest_win:
-                    longest_win = t_win
-
-                t_win = 0
-
-        return longest_win, longest_losing

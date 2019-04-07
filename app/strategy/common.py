@@ -1,12 +1,15 @@
 from random import randint
 
 from app.model.result import ResultModel
+from app.model.display import DisplayModel
 
 from tabulate import tabulate
 
 
 class StrategyCommon(object):
     __slots__ = ['backtest']
+
+    display = DisplayModel()
 
     switch_idle_start = True
 
@@ -119,7 +122,7 @@ class StrategyCommon(object):
 
         for x in range(500):
             store = self.run_single(bets, **kwargs)
-            result_summary = store.get_result_summary()
+            result_summary = self.display.get_result_summary(store.results)
             aggregate_results.append(result_summary)
 
         return aggregate_results
@@ -127,24 +130,6 @@ class StrategyCommon(object):
     @staticmethod
     def tabulate_data(headers, data, table_format='grid'):
         return tabulate(data, headers, tablefmt=table_format)
-
-    @staticmethod
-    def get_aggregated_result_summary(results):
-        avg_profit_ratio = round(sum([x['profit_ratio'] for x in results]) / len(results), 2)
-        avg_profit_total = round(sum([x['profit_total'] for x in results]) / len(results), 2)
-        avg_losing_streak = round(sum([x['longest_lose_streak'] for x in results]) / len(results), 2)
-        avg_winning_streak = round(sum([x['longest_win_streak'] for x in results]) / len(results), 2)
-        avg_win_ratio = round(sum([x['win_ratio'] for x in results]) / len(results), 2)
-
-        aggregated_summary = {
-            'total_games': len(results),
-            'avg_win_ratio': avg_win_ratio,
-            'avg_streak': '{} / {}'.format(avg_winning_streak, avg_losing_streak),
-            'avg_profit_ratio': avg_profit_ratio,
-            'avg_profit_total': avg_profit_total
-        }
-
-        return aggregated_summary
 
     def get_next_number(self, idx):
         try:
@@ -164,19 +149,6 @@ class StrategyCommon(object):
     @staticmethod
     def get_result_model():
         return ResultModel()
-
-    @classmethod
-    def print_aggregated_result_summary(cls, aggr_summary):
-        headers = [
-            'Total Games', 'Avg. Win Ratio (%)', 'Avg. Streaks (W/L)', 'Avg. Profit Ratio (%)', 'Avg. Profit'
-        ]
-
-        data = [[
-            aggr_summary['total_games'], aggr_summary['avg_win_ratio'], aggr_summary['avg_streak'],
-            aggr_summary['avg_profit_ratio'], aggr_summary['avg_profit_total']
-        ]]
-
-        print(cls.tabulate_data(headers, data))
 
     @staticmethod
     def set_new_bets(status, current_bets, original_bets, **kwargs):
