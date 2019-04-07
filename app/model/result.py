@@ -77,7 +77,7 @@ class ResultModel(object):
             'bet_result': bet_result,
             'profit': profit,
             'status': status,
-            'win_types': win_types,
+            'win_types': win_types
         }
 
         self.results.append(result)

@@ -22,8 +22,10 @@ parser.add_argument('--bet_amount', action='store', type=str, default=None,
                     metavar='NUMBER', help='money to bet on bet types')
 parser.add_argument('--balance', action='store', type=float, default=1000.0,
                     metavar='NUMBER', help='starting balance')
-parser.add_argument('--cycles', action='store', type=int, default=20,
+parser.add_argument('--cycles', action='store', type=int, default=None,
                     metavar='NUMBER', help='number of games played')
+parser.add_argument('--target_profit', action='store', type=float, default=None,
+                    metavar='NUMBER', help='filename for backtesting strate')
 parser.add_argument('--table_limit', action='store', type=float, default=150.0,
                     metavar='NUMBER', help='maximum sum of bet money table accepts')
 parser.add_argument('--idle_start', action='store', type=int, default=0,
