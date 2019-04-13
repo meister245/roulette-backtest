@@ -1,77 +1,32 @@
-from typing import List
+import random
+from typing import Union
 
-TIER, ORPHELINS, VOISONS, ZERO = 'tier', 'orphelins', 'voisons', 'zero'
-RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
-COLUMN_TOP, COLUMN_MIDDLE, COLUMN_BOTTOM = 'column_top', 'column_center', 'column_bottom'
-DOZEN_LEFT, DOZEN_MIDDLE, DOZEN_RIGHT = 'dozen_left', 'dozen_middle', 'dozen_right'
-LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
+from app.model.bet import BetModel
 
 
 class ResultModel(object):
-    __slots__ = ['results']
+    bet_model = BetModel()
 
-    bet_mapping = {
-        COLUMN_TOP: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
-        COLUMN_MIDDLE: [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
-        COLUMN_BOTTOM: [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
-        RED: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 27, 30, 32, 34, 36],
-        BLACK: [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],
-        TIER: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
-        ORPHELINS: [17, 34, 6, 1, 20, 14, 31, 9],
-        VOISONS: [22, 18, 29, 7, 28, 19, 4, 21, 2, 25],
-        ZERO: [12, 35, 3, 26, 0, 32, 15],
+    __slots__ = ['results', 'backtest', 'numbers']
 
-        FOUR: [(0, 1, 2, 3)],
-
-        STREET: [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12), (13, 14, 15), (16, 17, 18), (19, 20, 21),
-                 (22, 23, 24), (25, 26, 27), (28, 29, 30), (31, 32, 33), (34, 35, 36)],
-
-        LINE: [(1, 2, 3, 4, 5, 6), (4, 5, 6, 7, 8, 9), (7, 8, 9, 10, 11, 12), (10, 11, 12, 13, 14, 15),
-               (13, 14, 15, 16, 17, 18), (16, 17, 18, 19, 20, 21), (19, 20, 21, 22, 23, 24), (22, 23, 24, 25, 26, 27),
-               (25, 26, 27, 28, 29, 30), (28, 29, 30, 31, 32, 33), (31, 32, 33, 34, 35, 36)],
-
-        CORNER: [(1, 2, 4, 5), (2, 3, 5, 6), (4, 5, 7, 8), (5, 6, 8, 9), (7, 8, 10, 11), (8, 9, 11, 12),
-                 (10, 11, 13, 14), (11, 12, 14, 15), (13, 14, 16, 17), (14, 15, 17, 18), (16, 17, 19, 20),
-                 (17, 18, 20, 21), (19, 20, 22, 23), (20, 21, 23, 24), (22, 23, 25, 26), (23, 24, 26, 27),
-                 (25, 26, 28, 29), (26, 27, 29, 30), (28, 29, 31, 32), (29, 30, 32, 33), (31, 32, 34, 35),
-                 (32, 33, 35, 36)],
-
-        SPLIT: [(1, 2), (2, 3), (4, 5), (5, 6), (7, 8), (8, 9), (10, 11), (11, 12), (13, 14), (14, 15), (16, 17),
-                (17, 18), (19, 20), (20, 21), (22, 23), (23, 24), (25, 26), (26, 27), (28, 29), (29, 30), (31, 32),
-                (32, 33), (34, 35), (35, 36), (1, 4), (2, 5), (3, 6), (4, 7), (5, 8), (6, 9), (7, 10), (8, 11),
-                (9, 12), (10, 13), (11, 14), (12, 15), (13, 16), (14, 17), (15, 18), (16, 19), (17, 20), (18, 21),
-                (19, 22), (20, 23), (21, 24), (22, 25), (23, 26), (24, 27), (25, 28), (26, 29), (27, 30), (28, 31),
-                (29, 32), (30, 33), (31, 34), (32, 35), (33, 36)]
-    }
-
-    payout_mapping = {
-        RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1, DOZEN_LEFT: 2,
-        DOZEN_MIDDLE: 2, DOZEN_RIGHT: 2, COLUMN_TOP: 2, COLUMN_MIDDLE: 2, COLUMN_BOTTOM: 2,
-        LINE: 5, CORNER: 8, FOUR: 8, STREET: 11, SPLIT: 17, STRAIGHT: 35
-    }
-
-    result_mapping = {
-        'win': 'W', 'lose': 'L', 'win_idle': 'WI', 'lose_idle': 'LI', 'null': 'N', 'null_idle': 'NI'
-    }
-
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.results = []
+        self.backtest = kwargs.get('backtest', None)
 
-    def get_result(self, number: int, bets: dict, balance: float, idle: bool) -> dict:
-        win_types = self.get_win_types(number)
+    def get_result(self, number: int, bets: list, balance: float, **kwargs) -> [float, dict]:
+        bets_sum = self.bet_model.get_bets_sum(bets)
+        win_types = self.bet_model.get_win_bet_types(number)
+        bets_result = self.bet_model.get_bets_result(bets, win_types)
 
-        bet_amount = sum([x for x in bets.values()])
-        bet_result = ['{} - {} - {}'.format(round(v, 2), 'W' if k in win_types else 'L', k) for k, v in bets.items()]
-
-        profit = self.calculate_profit(bets, win_types)
-        status = self.get_result_status(profit, idle)
+        profit = self.calculate_profit(bets_result)
+        status = 'W' if profit > 0 else 'L' if profit < 0 else None
 
         result = {
             'number': number,
             'balance_start': balance,
-            'balance_close': balance if idle else round(balance + profit, 2),
-            'bet_amount': bet_amount,
-            'bet_result': bet_result,
+            'balance_close': round(balance + profit, 2),
+            'bet_amount': bets_sum,
+            'bet_result': bets_result,
             'profit': profit,
             'status': status,
             'win_types': win_types
@@ -79,108 +34,32 @@ class ResultModel(object):
 
         self.results.append(result)
 
-        return result
+        bets = self.bet_model.update_bets(bets, result, self.results, **kwargs)
 
-    @staticmethod
-    def get_result_status(profit, idle):
-        if profit == 0:
-            return 'null_idle' if idle else 'null'
-
-        elif profit < 0:
-            return 'lose_idle' if idle else 'lose'
-
-        else:
-            return 'win_idle' if idle else 'win'
+        return result['balance_close'], bets
 
     @classmethod
-    def calculate_profit(cls, bets: dict, win_bet_types: List[str]) -> float:
-        profit = 0 - sum([x for x in bets.values()])
+    def calculate_profit(cls, bets_result: Union[type(None), dict]) -> float:
+        if bets_result is None:
+            return 0
 
-        for bet_type, amount in bets.items():
-            if bet_type in win_bet_types:
-                name = bet_type.split('_', 1).pop(0)
+        profit = 0 - sum([x['bet_amount'] for x in bets_result])
 
-                if name in ['street', 'line', 'corner', 'split', 'four']:
-                    profit += amount * cls.payout_mapping[name]
-
-                else:
-                    profit += amount * cls.payout_mapping[bet_type]
-
-                profit += amount
+        for x in bets_result:
+            if x['win']:
+                name = x['bet_type'].split('_', 1).pop(0)
+                profit += x['bet_amount']
+                profit += x['bet_amount'] * cls.bet_model.payout_mapping[name]
 
         return round(profit, 2)
 
-    def get_result_pattern(self):
-        pattern = []
+    def get_next_number(self, idx):
+        try:
+            if self.backtest is None:
+                return random.randint(0, 36)
 
-        for x in self.results:
-            pattern.append(self.result_mapping[x['status']])
+            else:
+                return self.backtest[idx]
 
-        return tuple(pattern)
-
-    @classmethod
-    def get_win_types(cls, number: int) -> List[str]:
-        win_bet_types = ['{}_{}'.format(STRAIGHT, number)]
-
-        if number in cls.bet_mapping[RED]:
-            win_bet_types.append(RED)
-
-        elif number in cls.bet_mapping[BLACK]:
-            win_bet_types.append(BLACK)
-
-        if number != 0 and number % 2 == 0:
-            win_bet_types.append(EVEN)
-
-        elif number % 2 == 1:
-            win_bet_types.append(ODD)
-
-        if 1 <= number <= 18:
-            win_bet_types.append(LOW)
-
-        elif 19 <= number <= 36:
-            win_bet_types.append(HIGH)
-
-        if number in cls.bet_mapping[COLUMN_TOP]:
-            win_bet_types.append(COLUMN_TOP)
-
-        elif number in cls.bet_mapping[COLUMN_MIDDLE]:
-            win_bet_types.append(COLUMN_MIDDLE)
-
-        elif number in cls.bet_mapping[COLUMN_BOTTOM]:
-            win_bet_types.append(COLUMN_BOTTOM)
-
-        if 1 <= number <= 12:
-            win_bet_types.append(DOZEN_LEFT)
-
-        elif 13 <= number <= 22:
-            win_bet_types.append(DOZEN_MIDDLE)
-
-        elif 23 <= number <= 36:
-            win_bet_types.append(DOZEN_RIGHT)
-
-        if number in cls.bet_mapping[TIER]:
-            win_bet_types.append(TIER)
-
-        elif number in cls.bet_mapping[ORPHELINS]:
-            win_bet_types.append(ORPHELINS)
-
-        elif number in cls.bet_mapping[VOISONS]:
-            win_bet_types.append(VOISONS)
-
-        for x in cls.bet_mapping[SPLIT]:
-            if number in x:
-                win_bet_types.append('{}_{}_{}'.format(SPLIT, x[0], x[1]))
-
-        for x in cls.bet_mapping[STREET]:
-            if number in x:
-                win_bet_types.append('{}_{}_{}_{}'.format(STREET, x[0], x[1], x[2]))
-
-        for x in cls.bet_mapping[CORNER]:
-            if number in x:
-                win_bet_types.append('{}_{}_{}_{}_{}'.format(CORNER, x[0], x[1], x[2], x[3]))
-
-        for x in cls.bet_mapping[LINE]:
-            if number in x:
-                win_bet_types.append('{}_{}_{}_{}_{}_{}_{}'.format(LINE, x[0], x[1], x[2], x[3], x[4], x[5]))
-
-        return win_bet_types
+        except IndexError:
+            exit('insufficient backtest numbers to complete simulation')
