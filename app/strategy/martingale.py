@@ -1,20 +1,14 @@
-from app.strategy.common import StrategyCommon
-
-
-class StrategyMartingale(StrategyCommon):
-    def __init__(self, backtest):
-        StrategyCommon.__init__(self, backtest)
+class StrategyMartingale(object):
+    def __init__(self):
+        pass
 
     @staticmethod
-    def set_new_bets(status, current_bets, original_bets, **kwargs):
-        if status in ['win', 'win_idle', 'lose_idle']:
-            return original_bets
+    def set_new_bet(bet, bet_result, table_limit=150.0):
+        if bet['type'] in bet_result['win_types']:
+            return bet['size_original']
 
-        elif status in ['null', 'null_idle']:
-            return current_bets
-
-        if sum([x for x in current_bets.values()]) * 2 > kwargs.get('table_limit', 150.0):
-            return current_bets
+        elif bet['size_current'] * 2 > table_limit:
+            return bet['size_current']
 
         else:
-            return {k: round(v * 2, 2) for k, v in current_bets.items()}
+            return bet['size_current'] * 2
