@@ -1,12 +1,8 @@
 import os
 import json
 
-from app.model.result import ResultModel
-
 
 class Config(object):
-    bet_types = ResultModel.bet_mapping.keys()
-
     def __init__(self, src_dir):
         self.backtest = None
 
