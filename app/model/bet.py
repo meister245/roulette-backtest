@@ -60,18 +60,20 @@ class BetModel(object):
     def parse_bet_pattern(cls, config_pattern: str) -> dict:
         elements = [x for x in config_pattern.split(',') if len(x) != 0]
 
-        if len(elements) != 5:
+        if len(elements) < 5:
             exit('invalid bet pattern - {}'.format(config_pattern))
 
         return {
             'active': False,
             'lose_current': 0,
-            'lose_limit': int(elements[4]),
-            'pattern': cls.get_bet_pattern(elements[1]),
-            'size_current': float(elements[2]),
-            'size_original': float(elements[2]),
+            'win_current': 0,
             'strategy': cls.strategy_fctr.get_strategy(elements[0]),
-            'type': cls.validate_bet_type(elements[3])
+            'pattern': cls.get_bet_pattern(elements[1]),
+            'size_current': float(cls.get_list_number(elements, 2)),
+            'size_original': float(cls.get_list_number(elements, 2)),
+            'type': cls.validate_bet_type(elements[3]),
+            'limit_lose': int(cls.get_list_number(elements, 4)),
+            'limit_win': int(cls.get_list_number(elements, 5)),
         }
 
     @classmethod
@@ -96,19 +98,27 @@ class BetModel(object):
             if not b['active']:
                 new_bet['active'] = cls.match_patterns(b, total_results)
 
-            elif b['active'] and 0 < b['lose_limit'] == b['lose_current'] + 1:
+            elif b['active'] and 0 < b['limit_lose'] == b['lose_current'] + 1:
                 new_bet['active'] = False
                 new_bet['lose_current'] = 0
+                new_bet['size_current'] = new_bet['size_original']
+
+            elif b['active'] and 0 < b['limit_win'] == b['win_current'] + 1:
+                new_bet['active'] = False
+                new_bet['win_current'] = 0
                 new_bet['size_current'] = new_bet['size_original']
 
             elif b['active'] and b['type'] in bet_result['win_types']:
-                new_bet['active'] = False
                 new_bet['lose_current'] = 0
-                new_bet['size_current'] = new_bet['size_original']
+                new_bet['win_current'] += 1
+                new_bet['active'] = b['strategy'].get_new_status(b, bet_result)
+                new_bet['size_current'] = b['strategy'].get_new_bet(b, bet_result, kwargs.get('table_limit', 150.0))
 
             elif b['active'] and b['type'] not in bet_result['win_types']:
-                new_bet['size_current'] = b['strategy'].set_new_bet(b, bet_result, kwargs.get('table_limit', 150.0))
+                new_bet['win_current'] = 0
                 new_bet['lose_current'] += 1
+                new_bet['active'] = b['strategy'].get_new_status(b, bet_result)
+                new_bet['size_current'] = b['strategy'].get_new_bet(b, bet_result, kwargs.get('table_limit', 150.0))
 
             new_bets.append(new_bet)
 
@@ -217,3 +227,11 @@ class BetModel(object):
             exit('invalid number - {}'.format(number))
 
         return win_bet_types
+
+    @staticmethod
+    def get_list_number(elements, idx):
+        try:
+            return elements[idx]
+
+        except IndexError:
+            return 0
