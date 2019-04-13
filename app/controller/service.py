@@ -1,61 +1,41 @@
-import time
-import collections
-
-from app.factory.task import TaskFactory
+from app.controller.bet import BetController
+from app.model.display import DisplayModel
 
 
 class ServiceController(object):
+    bet_ctrl = BetController()
+    display_model = DisplayModel()
+
     def __init__(self, config):
         self.config = config
 
-        self.factory = TaskFactory(config)
-
-    def run_strategy_test(self, bets: dict, mode: str, strategy: str, **kwargs) -> None:
-        strategy_obj = self.factory.generate_strategy_object(strategy)
+    def run_simulation(self, bets: list, **kwargs) -> None:
+        mode = kwargs.get('mode', 'single')
 
         if mode == 'single':
-            self.run_strategy_test_single(strategy_obj, bets, **kwargs)
+            self.run_simulation_single(bets, **kwargs)
+
+        elif mode == 'live':
+            self.run_simulation_single(bets, **kwargs)
 
         elif mode == 'aggregate':
-            self.run_strategy_test_aggregate(strategy_obj, bets, **kwargs)
+            self.run_simulation_aggregate(bets, **kwargs)
 
         else:
             exit('invalid game mode - {}'.format(kwargs['mode']))
 
-    def run_strategy_test_single(self, strategy_obj, bets, **kwargs):
-        store = strategy_obj.run_single(bets, **kwargs)
-        strategy_obj.display.print_result_summary(store.results)
-        strategy_obj.display.print_result_details(store.results)
+    @classmethod
+    def run_simulation_single(cls, bets, **kwargs):
+        store = cls.bet_ctrl.run_simulation(bets, **kwargs)
+        cls.display_model.print_result_summary(store.results)
+        cls.display_model.print_result_details(store.results)
 
-    def run_strategy_test_aggregate(self, strategy_obj, bets, **kwargs):
-        summaries = strategy_obj.run_aggregate(bets, **kwargs)
-        strategy_obj.display.print_result_summary_aggregated(summaries)
+    @classmethod
+    def run_simulation_aggregate(cls, bets, **kwargs):
+        summaries = []
 
-    def run_data_collection(self, **kwargs):
-        numbers = {}
+        for x in range(kwargs.pop('cycles_aggregate', 500)):
+            store = cls.bet_ctrl.run_simulation(bets, **kwargs)
+            summaries.append(cls.display_model.get_result_summary(store.results))
 
-        casino_obj = self.factory.get_casino(kwargs['casino'])
-        table_name = self.config.casino[kwargs['casino']]['table_name']
-        backtest_dir = self.config.resource_dir + '/backtest'
-
-        file_name = '{}_{}_{}'.format(
-            kwargs['casino'], int(kwargs['collect']), int(time.time())
-        )
-
-        while True:
-            current_numbers = {x['ts']: x['number'] for x in casino_obj.get_table_results(table_name)}
-
-            for k in current_numbers.keys():
-                if k not in numbers.keys():
-                    numbers[k] = current_numbers[k]
-
-            with open(backtest_dir + '/{}'.format(file_name), 'w') as f:
-                sorted_dict = collections.OrderedDict(sorted(numbers.items()))
-                f.write(','.join([str(x) for x in sorted_dict.values()]))
-
-            if len(numbers) >= kwargs['collect']:
-                break
-
-            time.sleep(60)
-
-        print('finished collecting')
+        cls.display_model.print_result_summary_aggregated(summaries)
