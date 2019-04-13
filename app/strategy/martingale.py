@@ -3,7 +3,7 @@ class StrategyMartingale(object):
         pass
 
     @staticmethod
-    def set_new_bet(bet, bet_result, table_limit=150.0):
+    def get_new_bet(bet, bet_result, table_limit=150.0):
         if bet['type'] in bet_result['win_types']:
             return bet['size_original']
 
@@ -12,3 +12,7 @@ class StrategyMartingale(object):
 
         else:
             return bet['size_current'] * 2
+
+    @staticmethod
+    def get_new_status(bet, bet_result):
+        return False if bet['type'] in bet_result['win_types'] else True

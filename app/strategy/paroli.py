@@ -3,7 +3,7 @@ class StrategyParoli(object):
         pass
 
     @staticmethod
-    def set_new_bet(bet, bet_result, table_limit=150.0):
+    def get_new_bet(bet, bet_result, table_limit=150.0):
         if bet['type'] in bet_result['win_types']:
 
             if bet['size_current'] * 2 > table_limit:
@@ -14,3 +14,7 @@ class StrategyParoli(object):
 
         else:
             return bet['size_original']
+
+    @staticmethod
+    def get_new_status(bet, bet_result):
+        return True if bet['type'] in bet_result['win_types'] else False
