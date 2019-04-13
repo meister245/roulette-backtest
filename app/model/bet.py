@@ -96,7 +96,7 @@ class BetModel(object):
             if not b['active']:
                 new_bet['active'] = cls.match_patterns(b, total_results)
 
-            elif b['active'] and 0 < b['lose_limit'] == b['lose_current']:
+            elif b['active'] and 0 < b['lose_limit'] == b['lose_current'] + 1:
                 new_bet['active'] = False
                 new_bet['lose_current'] = 0
                 new_bet['size_current'] = new_bet['size_original']
