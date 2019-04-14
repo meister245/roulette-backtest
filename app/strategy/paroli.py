@@ -16,5 +16,11 @@ class StrategyParoli(object):
             return bet['size_original']
 
     @staticmethod
-    def get_new_status(bet, bet_result):
-        return True if bet['type'] in bet_result['win_types'] else False
+    def get_new_status(bet):
+        if bet['limit_lose'] == bet['lose_current']:
+            return False
+
+        if bet['limit_win'] == bet['win_current']:
+            return False
+
+        return True

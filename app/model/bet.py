@@ -114,27 +114,17 @@ class BetModel(object):
             if not b['active']:
                 new_bet['active'] = cls.match_patterns(b, total_results)
 
-            elif b['active'] and 0 < b['limit_lose'] == b['lose_current'] + 1:
-                new_bet['active'] = False
-                new_bet['lose_current'] = 0
-                new_bet['size_current'] = new_bet['size_original']
-
-            elif b['active'] and 0 < b['limit_win'] == b['win_current'] + 1:
-                new_bet['active'] = False
-                new_bet['win_current'] = 0
-                new_bet['size_current'] = new_bet['size_original']
-
             elif b['active'] and b['type'] in bet_result['win_types']:
                 new_bet['lose_current'] = 0
                 new_bet['win_current'] += 1
-                new_bet['active'] = b['strategy'].get_new_status(b, bet_result)
-                new_bet['size_current'] = b['strategy'].get_new_bet(b, bet_result, kwargs.get('table_limit', 150.0))
+                new_bet['active'] = b['strategy'].get_new_status(new_bet)
+                new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs.get('table_limit', 150.0))
 
             elif b['active'] and b['type'] not in bet_result['win_types']:
                 new_bet['win_current'] = 0
                 new_bet['lose_current'] += 1
-                new_bet['active'] = b['strategy'].get_new_status(b, bet_result)
-                new_bet['size_current'] = b['strategy'].get_new_bet(b, bet_result, kwargs.get('table_limit', 150.0))
+                new_bet['active'] = b['strategy'].get_new_status(new_bet)
+                new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs.get('table_limit', 150.0))
 
             new_bets.append(new_bet)
 

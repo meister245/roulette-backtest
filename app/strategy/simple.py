@@ -7,5 +7,11 @@ class StrategySimple(object):
         return bet['size_current']
 
     @staticmethod
-    def get_new_status(bet, bet_result):
+    def get_new_status(bet):
+        if bet['limit_lose'] == bet['lose_current']:
+            return False
+
+        if bet['limit_win'] == bet['win_current']:
+            return False
+
         return True
