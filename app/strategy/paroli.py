@@ -1,6 +1,9 @@
-class StrategyParoli(object):
+from app.strategy.common import StrategyCommon
+
+
+class StrategyParoli(StrategyCommon):
     def __init__(self):
-        pass
+        StrategyCommon.__init__(self)
 
     @staticmethod
     def get_new_bet(bet, bet_result, table_limit=150.0):
@@ -14,13 +17,3 @@ class StrategyParoli(object):
 
         else:
             return bet['size_original']
-
-    @staticmethod
-    def get_new_status(bet):
-        if bet['limit_lose'] == bet['lose_current']:
-            return False
-
-        if bet['limit_win'] == bet['win_current']:
-            return False
-
-        return True
