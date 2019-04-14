@@ -7,7 +7,7 @@ from os.path import dirname, realpath
 SRC_DIR = realpath(dirname(__file__) + '/../')
 sys.path.append(SRC_DIR)
 
-from app.config import Config
+from app import __version__
 from app.controller.service import ServiceController
 
 parser = argparse.ArgumentParser()
@@ -24,16 +24,13 @@ parser.add_argument('-l', '--table_limit', action='store', type=float, default=1
                     metavar='NUMBER', help='maximum sum of bet money table accepts')
 parser.add_argument('--balance', action='store', type=float, default=1000.0,
                     metavar='NUMBER', help='starting balance')
-parser.add_argument('--backtest', action='store', type=str, default=None,
-                    metavar='FILENAME', help='filename for backtesting strategy')
 
 params = vars(parser.parse_args())
 
 if params['mode'] != 'single' and params['backtest'] is not None:
     exit('backtesting is only available is SINGLE game mode')
 
-config = Config(SRC_DIR)
-service = ServiceController(config)
+service = ServiceController()
 
 if __name__ == '__main__':
     try:
@@ -43,6 +40,7 @@ if __name__ == '__main__':
         for x in temp:
             bets.extend(x)
 
+        print('simulator version: {}'.format(__version__))
         service.run_simulation(bets, **params)
 
     except KeyboardInterrupt:

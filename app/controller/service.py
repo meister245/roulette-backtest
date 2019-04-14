@@ -6,9 +6,6 @@ class ServiceController(object):
     bet_ctrl = BetController()
     display_model = DisplayModel()
 
-    def __init__(self, config):
-        self.config = config
-
     def run_simulation(self, bets: list, **kwargs) -> None:
         mode = kwargs.get('mode', 'single')
 
