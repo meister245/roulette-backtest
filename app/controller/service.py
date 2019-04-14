@@ -9,10 +9,7 @@ class ServiceController(object):
     def run_simulation(self, bets: list, **kwargs) -> None:
         mode = kwargs.get('mode', 'single')
 
-        if mode == 'single':
-            self.run_simulation_single(bets, **kwargs)
-
-        elif mode == 'live':
+        if mode in ['single', 'live']:
             self.run_simulation_single(bets, **kwargs)
 
         elif mode == 'aggregate':

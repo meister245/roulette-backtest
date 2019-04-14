@@ -27,9 +27,6 @@ parser.add_argument('--balance', action='store', type=float, default=1000.0,
 
 params = vars(parser.parse_args())
 
-if params['mode'] != 'single' and params['backtest'] is not None:
-    exit('backtesting is only available is SINGLE game mode')
-
 service = ServiceController()
 
 if __name__ == '__main__':

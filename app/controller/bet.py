@@ -5,8 +5,9 @@ from app.model.result import ResultModel
 class BetController(object):
     bet_model = BetModel()
 
-    def run_simulation(self, bets, **kwargs):
-        bets = [self.bet_model.parse_bet_pattern(x) for x in bets]
+    @classmethod
+    def run_simulation(cls, bets, **kwargs):
+        bets = [cls.bet_model.parse_bet_pattern(x) for x in bets]
 
         balance, target_profit = kwargs.pop('balance', 1000.0), kwargs.pop('target_profit', None)
         cycles, backtest = kwargs.pop('cycles', None), kwargs.pop('backtest', None)
@@ -17,14 +18,14 @@ class BetController(object):
         elif cycles is not None and target_profit is not None:
             exit('simulation does not support fixed cycles AND fixed target_profit')
 
-        store = self.get_result_model(backtest=backtest)
+        store = cls.get_result_model(backtest=backtest)
 
         if isinstance(cycles, (int, float)):
             cycles = len(backtest) if backtest is not None and len(backtest) < cycles else cycles
-            return self.run_fixed_cycles(store, bets, cycles, balance, **kwargs)
+            return cls.run_fixed_cycles(store, bets, cycles, balance, **kwargs)
 
         elif isinstance(target_profit, (int, float)):
-            return self.run_fixed_profit(store, bets, target_profit, balance, **kwargs)
+            return cls.run_fixed_profit(store, bets, target_profit, balance, **kwargs)
 
         else:
             exit('invalid parameters')
@@ -43,6 +44,7 @@ class BetController(object):
 
         return store
 
+    @classmethod
     def run_fixed_profit(cls, store, bets, target_profit, balance, **kwargs):
         target_balance, cycle_count = balance + target_profit, 0
 
