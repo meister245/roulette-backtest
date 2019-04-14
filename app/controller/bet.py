@@ -35,8 +35,11 @@ class BetController(object):
             if cls.bet_model.get_bets_sum(bets) > balance:
                 break
 
-            number = store.get_next_number(cycle_count)
+            number = store.get_next_number(cycle_count, **kwargs)
             balance, bets = store.get_result(number, bets, balance, **kwargs)
+
+            if kwargs['mode'] == 'live':
+                cls.bet_model.print_bets(bets)
 
         return store
 
@@ -47,8 +50,11 @@ class BetController(object):
             if cls.bet_model.get_bets_sum(bets) > balance:
                 break
 
-            number = store.get_next_number(cycle_count)
+            number = store.get_next_number(cycle_count, **kwargs)
             balance, bets = store.get_result(number, bets, balance, **kwargs)
+
+            if kwargs['mode'] == 'live':
+                cls.bet_model.print_bets(bets)
 
             if balance >= target_balance:
                 return store

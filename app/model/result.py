@@ -53,13 +53,28 @@ class ResultModel(object):
 
         return round(profit, 2)
 
-    def get_next_number(self, idx):
-        try:
-            if self.backtest is None:
-                return random.randint(0, 36)
+    def get_next_number(self, idx, **kwargs):
+        live = True if kwargs['mode'] == 'live' else False
 
-            else:
+        if live:
+            while True:
+                try:
+                    number = int(input('Next Number: '))
+
+                    if abs(number) > 36:
+                        raise ValueError()
+
+                    return number
+
+                except ValueError:
+                    print('invalid value')
+
+        elif self.backtest is None:
+            return random.randint(0, 36)
+
+        else:
+            try:
                 return self.backtest[idx]
 
-        except IndexError:
-            exit('insufficient backtest numbers to complete simulation')
+            except IndexError:
+                exit('insufficient backtest numbers to complete simulation')

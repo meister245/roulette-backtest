@@ -76,6 +76,22 @@ class BetModel(object):
             'limit_win': int(cls.get_list_number(elements, 5)),
         }
 
+    @staticmethod
+    def print_bets(bets):
+        bet_summary = {}
+
+        for x in bets:
+            if x['active']:
+                bet_summary[x['type']] = bet_summary.pop(x['type'], 0) + x['size_current']
+
+        if len(bet_summary) == 0:
+            msg = 'no bets'
+
+        else:
+            msg = '\n'.join(['{}: {}'.format(k, v) for k, v in bet_summary.items()])
+
+        print('\n' + '#' * 30 + '\n' + msg + '\n' + '#' * 30 + '\n')
+
     @classmethod
     def get_bets_result(cls, bets, win_types):
         bets_result = []
