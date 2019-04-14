@@ -118,13 +118,23 @@ class BetModel(object):
                 new_bet['lose_current'] = 0
                 new_bet['win_current'] += 1
                 new_bet['active'] = b['strategy'].get_new_status(new_bet)
-                new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs.get('table_limit', 150.0))
+
+                if not new_bet['active']:
+                    new_bet['size_current'] = b['size_original']
+
+                else:
+                    new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs['table_limit'])
 
             elif b['active'] and b['type'] not in bet_result['win_types']:
                 new_bet['win_current'] = 0
                 new_bet['lose_current'] += 1
                 new_bet['active'] = b['strategy'].get_new_status(new_bet)
-                new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs.get('table_limit', 150.0))
+
+                if not new_bet['active']:
+                    new_bet['size_current'] = b['size_original']
+
+                else:
+                    new_bet['size_current'] = b['strategy'].get_new_bet(new_bet, bet_result, kwargs['table_limit'])
 
             new_bets.append(new_bet)
 
