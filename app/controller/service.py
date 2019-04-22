@@ -5,36 +5,38 @@ from app.model.display import DisplayModel
 class ServiceController(object):
     display_model = DisplayModel()
 
-    def __init__(self):
-        self.bet_ctrl = BetController()
-
     def run_simulation(self, bet_configs, **kwargs) -> None:
         mode = kwargs.get('mode', 'single')
 
-        for c in bet_configs:
-            self.bet_ctrl.set_bet_config(c)
-
         if mode in ['single', 'live']:
-            self.run_simulation_single(**kwargs)
+            results = self.run_simulation_single(bet_configs, **kwargs)
+            self.display_model.print_result_summary(results)
+
+            if kwargs.get('verbose', False):
+                self.display_model.print_result_details(results)
 
         elif mode in ['aggregate']:
-            self.run_simulation_aggregate(**kwargs)
+            summaries = self.run_simulation_aggregate(bet_configs, **kwargs)
+            self.display_model.print_result_summary_aggregated(summaries)
 
         else:
             exit('invalid game mode - {}'.format(kwargs['mode']))
 
-    def run_simulation_single(self, **kwargs):
-        results = self.bet_ctrl.run_simulation(**kwargs)
-        self.display_model.print_result_summary(results)
+    def run_simulation_single(self, bet_configs, **kwargs):
+        bet_ctrl = BetController()
 
-        if kwargs.get('verbose', False):
-            self.display_model.print_result_details(results)
+        for c in bet_configs:
+            bet_ctrl.set_bet_config(c)
 
-    def run_simulation_aggregate(self, **kwargs):
+        results = bet_ctrl.run_simulation(**kwargs)
+
+        return results
+
+    def run_simulation_aggregate(self, bet_configs, **kwargs):
         summaries = []
 
         for x in range(kwargs.pop('cycles', 500)):
-            results = self.bet_ctrl.run_simulation(**kwargs)
+            results = self.run_simulation_single(bet_configs, **kwargs)
             summaries.append(self.display_model.get_result_summary(results))
 
-        self.display_model.print_result_summary_aggregated(summaries)
+        return summaries
