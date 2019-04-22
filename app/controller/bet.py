@@ -1,70 +1,136 @@
-from app.model.bet import BetModel
-from app.model.result import ResultModel
+import random
+
+from app.factory.bet import BetFactory
+from app.model.roulette import RouletteModel
 
 
 class BetController(object):
-    bet_model = BetModel()
+    bet_fctr = BetFactory()
+    roulette_mdl = RouletteModel()
 
-    @classmethod
-    def run_simulation(cls, bets, **kwargs):
-        bets = [cls.bet_model.parse_bet_pattern(x) for x in bets]
+    def __init__(self, bet_configs):
+        self.bets = []
+        self.results = []
+        self.bet_configs = [self.parse_bet_config(x) for x in bet_configs]
 
-        balance, target_profit = kwargs.pop('balance', 1000.0), kwargs.pop('target_profit', None)
-        cycles, backtest = kwargs.pop('cycles', None), kwargs.pop('backtest', None)
-
-        if cycles is None and target_profit is None:
-            exit('cycles OR target_profit parameter required')
-
-        elif cycles is not None and target_profit is not None:
-            exit('simulation does not support fixed cycles AND fixed target_profit')
-
-        store = cls.get_result_model(backtest=backtest)
-
-        if isinstance(cycles, (int, float)):
-            cycles = len(backtest) if backtest is not None and len(backtest) < cycles else cycles
-            return cls.run_fixed_cycles(store, bets, cycles, balance, **kwargs)
-
-        elif isinstance(target_profit, (int, float)):
-            return cls.run_fixed_profit(store, bets, target_profit, balance, **kwargs)
-
-        else:
-            exit('invalid parameters')
-
-    @classmethod
-    def run_fixed_cycles(cls, store, bets, cycles, balance, **kwargs):
-        for cycle_count in range(cycles):
-            if cls.bet_model.get_bets_sum(bets) > balance:
-                break
-
-            number = store.get_next_number(cycle_count, **kwargs)
-            balance, bets = store.get_result(number, bets, balance, **kwargs)
-
-            if kwargs['mode'] == 'live':
-                cls.bet_model.print_bets(bets)
-
-        return store
-
-    @classmethod
-    def run_fixed_profit(cls, store, bets, target_profit, balance, **kwargs):
-        target_balance, cycle_count = balance + target_profit, 0
-
-        while True:
-            if cls.bet_model.get_bets_sum(bets) > balance:
-                break
-
-            number = store.get_next_number(cycle_count, **kwargs)
-            balance, bets = store.get_result(number, bets, balance, **kwargs)
-
-            if kwargs['mode'] == 'live':
-                cls.bet_model.print_bets(bets)
-
-            if balance >= target_balance:
-                return store
-
-            cycle_count += 1
-
-        return store
+    def get_bets_total_size(self):
+        return sum([x.size_current if x.is_bet_active() else 0 for x in self.bets]) if len(self.bets) > 0 else 0
 
     @staticmethod
-    def get_result_model(**kwargs):
-        return ResultModel(**kwargs)
+    def get_dynamic_bet_size(balance, ratio=50):
+        return round(balance / ratio, 1)
+
+    @staticmethod
+    def get_next_number(**kwargs):
+        if kwargs['mode'] == 'live':
+
+            while True:
+                try:
+                    number = int(input('Next Number: '))
+
+                    if abs(number) > 36:
+                        raise ValueError()
+
+                    return number
+
+                except ValueError:
+                    print('invalid value')
+
+        else:
+            return random.randint(0, 36)
+
+    @classmethod
+    def parse_bet_config(cls, config: str) -> dict:
+        elements = [x for x in config.split(',') if len(x) != 0]
+
+        if len(elements) < 5:
+            raise ValueError('invalid bet config - {}'.format(config))
+
+        cls.bet_fctr.validate_bet_strategy(elements[0])
+        cls.roulette_mdl.validate_bet_type(elements[3])
+
+        config = {
+            'strategy': elements[0],
+            'pattern': cls.roulette_mdl.get_bet_pattern(elements[1]),
+            'size': elements[2],
+            'type': elements[3],
+            'limit_lose': elements[4] if 4 <= len(elements) else 0,
+            'limit_win': elements[5] if 5 <= len(elements) else 0
+        }
+
+        return config
+
+    def run_simulation(self, **kwargs):
+        balance, target_profit = kwargs.pop('balance', 1000.0), kwargs.pop('target_profit', None)
+        spins, backtest = kwargs.pop('spins', None), kwargs.pop('backtest', None)
+
+        if spins is None and target_profit is None:
+            raise ValueError('spins OR target_profit parameter required')
+
+        elif spins is not None and target_profit is not None:
+            raise ValueError('simulation does not support fixed spins AND fixed target_profit')
+
+        if isinstance(spins, (int, float)):
+            return self.run_fixed_spins(spins, balance, **kwargs)
+
+        elif isinstance(target_profit, (int, float)):
+            return self.run_fixed_profit(target_profit, balance, **kwargs)
+
+        else:
+            raise ValueError('invalid parameters')
+
+    def run_fixed_spins(self, spins, balance, **kwargs):
+        for spin_count in range(spins):
+            bet_results = []
+            number = self.get_next_number(**kwargs)
+
+            if self.get_bets_total_size() > balance:
+                break
+
+            for bet in self.bets:
+                balance, result = bet.run_bet(number, spin_count, balance, **kwargs)
+
+                if len(result) != 0:
+                    bet_results.append(result)
+
+            self.results.append({'results': bet_results, 'balance': balance, 'number': number})
+
+            self.set_new_bets(balance)
+
+        return tuple(self.results)
+
+    def run_fixed_profit(self, target_profit, balance, **kwargs):
+        target_balance, spin_count = balance + target_profit, 0
+
+        while True:
+            bet_results = []
+            number = self.get_next_number(**kwargs)
+
+            if self.get_bets_total_size() > balance:
+                break
+
+            for bet in self.bets:
+                balance, result = bet.run_bet(number, spin_count, balance, **kwargs)
+                bet_results.append(result)
+
+            self.results.append({'results': bet_results, 'balance': balance, 'number': number})
+
+            self.set_new_bets(balance)
+
+            if balance >= target_balance:
+                break
+
+            spin_count += 1
+
+        return tuple(self.results)
+
+    def set_new_bets(self, balance):
+        numbers = [x['number'] for x in self.results]
+
+        for config in self.bet_configs:
+            if self.roulette_mdl.is_pattern_match(config['pattern'], numbers):
+
+                if config['size'] == 'dynamic':
+                    config['size'] = self.get_dynamic_bet_size(balance)
+
+                self.bets.append(self.bet_fctr.get_bet(config['strategy'], **config))
