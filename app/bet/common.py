@@ -14,7 +14,9 @@ class BetCommon(object):
         self.win_current = 0
         self.lose_current = 0
 
-    def run_bet(self, number, spin, balance, **kwargs):
+    def run_bet(self, number, spin, balance, numbers, **kwargs):
+        result = {}
+
         if self.is_bet_active():
             result = self.get_bet_result(number, spin)
 
@@ -28,9 +30,6 @@ class BetCommon(object):
                 self.update_bet_size(result, **kwargs)
 
             balance += result['profit']
-
-        else:
-            result = {}
 
         return round(balance, 2), result
 

@@ -51,6 +51,8 @@ class DisplayModel(object):
             profit = sum([p['profit'] for p in x['results']])
 
             size = sum([s['size'] for s in x['results']])
+            size = size if size > 0 else '---'
+
             status = 'W' if profit > 0 else 'L' if profit < 0 else '---'
 
             t_data.append([x['balance'], bets, size, x['number'], status, profit])
