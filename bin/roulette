@@ -16,29 +16,36 @@ parser.add_argument('-b', '--bet', action='append', nargs='+', required=True,
                     metavar='BET', help='betting configuration')
 parser.add_argument('-m', '--mode', choices=['single', 'aggregate', 'live'], default='single',
                     metavar='MODE', help='single or aggregate simulation')
-parser.add_argument('-c', '--cycles', action='store', type=int, default=None,
-                    metavar='NUMBER', help='number of games played')
+parser.add_argument('-s', '--spins', action='store', type=int, default=None,
+                    metavar='NUMBER', help='number of roulette spins played')
 parser.add_argument('-t', '--target_profit', action='store', type=float, default=None,
                     metavar='NUMBER', help='filename for backtesting strate')
+parser.add_argument('-c', '--cycles', action='store', type=int, default=500,
+                    metavar='NUMBER', help='number of aggregated game cycles')
 parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
                     metavar='NUMBER', help='maximum sum of bet money table accepts')
-parser.add_argument('--balance', action='store', type=float, default=1000.0,
+parser.add_argument('--balance', action='store', type=float, default=100.0,
                     metavar='NUMBER', help='starting balance')
+parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                    help='detailed result report')
 
 params = vars(parser.parse_args())
 
-service = ServiceController()
+bet_patterns = []
+
+for x in params.pop('bet'):
+    bet_patterns.extend(x)
+
+service = ServiceController(bet_patterns)
 
 if __name__ == '__main__':
+    print('simulator version: {}'.format(__version__))
+
     try:
-        bets = []
-        temp = params.pop('bet')
-
-        for x in temp:
-            bets.extend(x)
-
-        print('simulator version: {}'.format(__version__))
-        service.run_simulation(bets, **params)
+        service.run_simulation(**params)
 
     except KeyboardInterrupt:
         exit('process terminated by user')
+
+    except ValueError as e:
+        exit(str(e))
