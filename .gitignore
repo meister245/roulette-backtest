@@ -1,7 +1,6 @@
 .idea/
+.pytest_cache/
 
-resources/backtest/*
-!resources/backtest/sample_numbers
+venv/
 
-*.iml
 *.pyc

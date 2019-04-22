@@ -1,2 +1,3 @@
 tabulate
 cachetools
+pytest[test]
