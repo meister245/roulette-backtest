@@ -5,11 +5,14 @@ from app.model.display import DisplayModel
 class ServiceController(object):
     display_model = DisplayModel()
 
-    def __init__(self, bet_patterns):
-        self.bet_ctrl = BetController(bet_patterns)
+    def __init__(self):
+        self.bet_ctrl = BetController()
 
-    def run_simulation(self, **kwargs) -> None:
+    def run_simulation(self, bet_configs, **kwargs) -> None:
         mode = kwargs.get('mode', 'single')
+
+        for c in bet_configs:
+            self.bet_ctrl.set_bet_config(c)
 
         if mode in ['single', 'live']:
             self.run_simulation_single(**kwargs)

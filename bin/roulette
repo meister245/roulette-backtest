@@ -31,18 +31,18 @@ parser.add_argument('-v', '--verbose', action='store_true', default=False,
 
 params = vars(parser.parse_args())
 
-bet_patterns = []
+bet_configs = []
 
 for x in params.pop('bet'):
-    bet_patterns.extend(x)
+    bet_configs.extend(x)
 
-service = ServiceController(bet_patterns)
+service = ServiceController()
 
 if __name__ == '__main__':
     print('simulator version: {}'.format(__version__))
 
     try:
-        service.run_simulation(**params)
+        service.run_simulation(bet_configs, **params)
 
     except KeyboardInterrupt:
         exit('process terminated by user')

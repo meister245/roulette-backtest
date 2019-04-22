@@ -5,46 +5,29 @@ from app.model.roulette import RouletteModel
 
 
 class BetController(object):
-    bet_fctr = BetFactory()
     roulette_mdl = RouletteModel()
 
-    def __init__(self, bet_configs):
-        self.bets = []
+    def __init__(self):
         self.results = []
-        self.bet_configs = [self.get_bet_config(x) for x in bet_configs]
+        self.bet_configs = []
 
-    @classmethod
-    def get_bet_config(cls, config: str) -> dict:
-        elements = [x for x in config.split(',') if len(x) != 0]
-
-        if len(elements) < 5:
-            raise ValueError('invalid bet config - {}'.format(config))
-
-        cls.bet_fctr.validate_bet_strategy(elements[0])
-        cls.roulette_mdl.validate_bet_type(elements[3])
-
-        config = {
-            'strategy': elements[0],
-            'pattern': cls.roulette_mdl.get_bet_pattern(elements[1]),
-            'size': elements[2],
-            'type': elements[3],
-            'limit_lose': elements[4] if 4 <= len(elements) else 0,
-            'limit_win': elements[5] if 5 <= len(elements) else 0
-        }
-
-        return config
+        self.bet_fctr = BetFactory()
 
     @staticmethod
     def get_bet_size(size, balance, ratio=50):
         return round(balance / ratio, 1) if size == 'dynamic' else size
 
     def get_bets_total_size(self):
-        return sum([x.size_current if x.is_bet_active() else 0 for x in self.bets]) if len(self.bets) > 0 else 0
+        total_size = 0
+
+        for x in self.bet_fctr.bets:
+            total_size += x.size_current if x.is_bet_active() else 0
+
+        return total_size
 
     @staticmethod
     def get_next_number(**kwargs):
         if kwargs['mode'] == 'live':
-
             while True:
                 try:
                     number = int(input('Next Number: '))
@@ -83,19 +66,20 @@ class BetController(object):
         for spin_count in range(spins):
             bet_results = []
             number = self.get_next_number(**kwargs)
+            numbers = [x['number'] for x in self.results]
+
+            self.set_bets(numbers, balance)
 
             if self.get_bets_total_size() > balance:
                 break
 
-            for bet in self.bets:
-                balance, result = bet.run_bet(number, spin_count, balance, **kwargs)
+            for bet in self.bet_fctr.bets:
+                balance, result = bet.run_bet(number, spin_count, balance, numbers, **kwargs)
 
                 if len(result) != 0:
                     bet_results.append(result)
 
             self.results.append({'results': bet_results, 'balance': balance, 'number': number})
-
-            self.set_new_bets(balance)
 
         return tuple(self.results)
 
@@ -105,17 +89,21 @@ class BetController(object):
         while True:
             bet_results = []
             number = self.get_next_number(**kwargs)
+            numbers = [x['number'] for x in self.results]
+
+            self.set_bets(numbers, balance)
 
             if self.get_bets_total_size() > balance:
                 break
 
-            for bet in self.bets:
-                balance, result = bet.run_bet(number, spin_count, balance, **kwargs)
-                bet_results.append(result)
+            for bet in self.bet_fctr.bets:
+                kwargs['numbers'] = [x['number'] for x in self.results]
+                balance, result = bet.run_bet(number, spin_count, balance, numbers, **kwargs)
+
+                if len(result) != 0:
+                    bet_results.append(result)
 
             self.results.append({'results': bet_results, 'balance': balance, 'number': number})
-
-            self.set_new_bets(balance)
 
             if balance >= target_balance:
                 break
@@ -124,10 +112,30 @@ class BetController(object):
 
         return tuple(self.results)
 
-    def set_new_bets(self, balance):
-        numbers = [x['number'] for x in self.results]
+    def set_bet_config(self, config: str) -> None:
+        elements = [x for x in config.split(',') if len(x) != 0]
 
+        if len(elements) < 5:
+            raise ValueError('invalid bet config - {}'.format(config))
+
+        self.bet_fctr.validate_bet_strategy(elements[0])
+        self.roulette_mdl.validate_bet_type(elements[3])
+
+        config = {
+            'strategy': elements[0],
+            'pattern': self.roulette_mdl.get_bet_pattern(elements[1]),
+            'size': elements[2],
+            'type': elements[3],
+            'limit_lose': elements[4] if 4 <= len(elements) else 0,
+            'limit_win': elements[5] if 5 <= len(elements) else 0
+        }
+
+        self.bet_configs.append(config)
+
+    def set_bets(self, numbers, balance):
         for config in self.bet_configs:
+            name = config['strategy']
+            config['size'] = self.get_bet_size(config['size'], balance)
+
             if self.roulette_mdl.is_pattern_match(config['pattern'], numbers):
-                config['size'] = self.get_bet_size(config['size'], balance)
-                self.bets.append(self.bet_fctr.get_bet(config['strategy'], **config))
+                self.bet_fctr.set_bet(name, **config)
