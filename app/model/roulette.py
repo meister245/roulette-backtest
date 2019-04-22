@@ -59,8 +59,8 @@ class RouletteModel(object):
         last_n_numbers = numbers[-len(pattern):]
 
         for idx, num in enumerate(last_n_numbers):
-            t = cls.validate_bet_type(pattern[idx])
-            p_subset.append(t if t in win_types[num] else None)
+            type = cls.validate_bet_type(pattern[idx])
+            p_subset.append(type if type in win_types[num] else None)
 
             if tuple(p_subset) == pattern:
                 return True
@@ -106,7 +106,7 @@ class RouletteModel(object):
 
     @classmethod
     def get_win_types(cls, number: int) -> List[str]:
-        win_types = ['{}_{}'.format(STRAIGHT, number)]
+        win_types = ['{}_{}'.format(STRAIGHT, number), 'any']
 
         if number == 0:
             win_types.append(FOUR)
@@ -156,7 +156,10 @@ class RouletteModel(object):
 
     @classmethod
     def validate_bet_type(cls, bet_type_name: str) -> str:
-        if bet_type_name not in cls.get_bet_types():
+        if bet_type_name == 'any':
+            return bet_type_name
+
+        elif bet_type_name not in cls.get_bet_types():
             raise ValueError('invalid bet type - {}'.format(bet_type_name))
 
         return bet_type_name

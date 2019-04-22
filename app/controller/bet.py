@@ -11,14 +11,35 @@ class BetController(object):
     def __init__(self, bet_configs):
         self.bets = []
         self.results = []
-        self.bet_configs = [self.parse_bet_config(x) for x in bet_configs]
+        self.bet_configs = [self.get_bet_config(x) for x in bet_configs]
+
+    @classmethod
+    def get_bet_config(cls, config: str) -> dict:
+        elements = [x for x in config.split(',') if len(x) != 0]
+
+        if len(elements) < 5:
+            raise ValueError('invalid bet config - {}'.format(config))
+
+        cls.bet_fctr.validate_bet_strategy(elements[0])
+        cls.roulette_mdl.validate_bet_type(elements[3])
+
+        config = {
+            'strategy': elements[0],
+            'pattern': cls.roulette_mdl.get_bet_pattern(elements[1]),
+            'size': elements[2],
+            'type': elements[3],
+            'limit_lose': elements[4] if 4 <= len(elements) else 0,
+            'limit_win': elements[5] if 5 <= len(elements) else 0
+        }
+
+        return config
+
+    @staticmethod
+    def get_bet_size(size, balance, ratio=50):
+        return round(balance / ratio, 1) if size == 'dynamic' else size
 
     def get_bets_total_size(self):
         return sum([x.size_current if x.is_bet_active() else 0 for x in self.bets]) if len(self.bets) > 0 else 0
-
-    @staticmethod
-    def get_dynamic_bet_size(balance, ratio=50):
-        return round(balance / ratio, 1)
 
     @staticmethod
     def get_next_number(**kwargs):
@@ -38,27 +59,6 @@ class BetController(object):
 
         else:
             return random.randint(0, 36)
-
-    @classmethod
-    def parse_bet_config(cls, config: str) -> dict:
-        elements = [x for x in config.split(',') if len(x) != 0]
-
-        if len(elements) < 5:
-            raise ValueError('invalid bet config - {}'.format(config))
-
-        cls.bet_fctr.validate_bet_strategy(elements[0])
-        cls.roulette_mdl.validate_bet_type(elements[3])
-
-        config = {
-            'strategy': elements[0],
-            'pattern': cls.roulette_mdl.get_bet_pattern(elements[1]),
-            'size': elements[2],
-            'type': elements[3],
-            'limit_lose': elements[4] if 4 <= len(elements) else 0,
-            'limit_win': elements[5] if 5 <= len(elements) else 0
-        }
-
-        return config
 
     def run_simulation(self, **kwargs):
         balance, target_profit = kwargs.pop('balance', 1000.0), kwargs.pop('target_profit', None)
@@ -129,8 +129,5 @@ class BetController(object):
 
         for config in self.bet_configs:
             if self.roulette_mdl.is_pattern_match(config['pattern'], numbers):
-
-                if config['size'] == 'dynamic':
-                    config['size'] = self.get_dynamic_bet_size(balance)
-
+                config['size'] = self.get_bet_size(config['size'], balance)
                 self.bets.append(self.bet_fctr.get_bet(config['strategy'], **config))
