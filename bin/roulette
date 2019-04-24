@@ -16,20 +16,23 @@ parser.add_argument('-b', '--bet', action='append', nargs='+', required=True,
                     metavar='BET', help='betting configuration')
 parser.add_argument('-m', '--mode', choices=['single', 'aggregate', 'live'], default='single',
                     metavar='MODE', help='single or aggregate simulation')
-parser.add_argument('-s', '--spins', action='store', type=int, default=None,
+parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                     metavar='NUMBER', help='number of roulette spins played')
-parser.add_argument('-t', '--target_profit', action='store', type=float, default=None,
-                    metavar='NUMBER', help='filename for backtesting strate')
 parser.add_argument('-c', '--cycles', action='store', type=int, default=500,
                     metavar='NUMBER', help='number of aggregated game cycles')
 parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
                     metavar='NUMBER', help='maximum sum of bet money table accepts')
 parser.add_argument('--balance', action='store', type=float, default=100.0,
                     metavar='NUMBER', help='starting balance')
-parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                    help='detailed result report')
+parser.add_argument('--backtest', action='store', type=str, default=None,
+                    metavar='FILENAME', help='backtest number source file')
 
 params = vars(parser.parse_args())
+
+if isinstance(params.get('backtest'), str):
+    file_path = realpath(dirname(SRC_DIR + '/resources/backtest/') + '/{}/'.format(params.pop('backtest')))
+else:
+    file_path = None
 
 bet_configs = []
 
@@ -42,7 +45,7 @@ if __name__ == '__main__':
     print('simulator version: {}'.format(__version__))
 
     try:
-        service.run_simulation(bet_configs, **params)
+        service.run_simulation(bet_configs, file_path, **params)
 
     except KeyboardInterrupt:
         exit('process terminated by user')

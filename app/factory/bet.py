@@ -1,4 +1,3 @@
-from app.bet.homerun import BetHomerun
 from app.bet.martingale import BetMartingale
 from app.bet.paroli import BetParoli
 from app.bet.simple import BetSimple
@@ -6,7 +5,7 @@ from app.bet.simple import BetSimple
 
 class BetFactory(object):
     bet_mapping = {
-        'simple': BetSimple, 'martingale': BetMartingale, 'paroli': BetParoli, 'homerun': BetHomerun
+        'simple': BetSimple, 'martingale': BetMartingale, 'paroli': BetParoli
     }
 
     def __init__(self):

@@ -14,7 +14,7 @@ class BetCommon(object):
         self.win_current = 0
         self.lose_current = 0
 
-    def run_bet(self, number, spin, balance, numbers, **kwargs):
+    def run_bet(self, number, spin, balance, **kwargs):
         result = {}
 
         if self.is_bet_active():
