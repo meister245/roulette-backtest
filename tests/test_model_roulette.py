@@ -45,8 +45,8 @@ class TestRouletteModel:
 
     def test_validate_bet_type(self, roulette):
         roulette.validate_bet_type('red')
-        roulette.validate_bet_type('dozen_left')
-        roulette.validate_bet_type('column_top')
+        roulette.validate_bet_type('dozen_1_12')
+        roulette.validate_bet_type('column_3_36')
         roulette.validate_bet_type('straight_0')
         roulette.validate_bet_type('split_1_2')
         roulette.validate_bet_type('street_1_2_3')

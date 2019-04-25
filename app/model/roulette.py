@@ -2,19 +2,14 @@ from typing import List
 
 import cachetools.func
 
+COLUMN, DOZEN = 'column', 'dozen'
 TIER, ORPHELINS, VOISONS, ZERO = 'tier', 'orphelins', 'voisons', 'zero'
 RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
-COLUMN_TOP, COLUMN_MIDDLE, COLUMN_BOTTOM = 'column_top', 'column_center', 'column_bottom'
-DOZEN_LEFT, DOZEN_MIDDLE, DOZEN_RIGHT = 'dozen_left', 'dozen_middle', 'dozen_right'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
 
 
 class RouletteModel(object):
     number_mapping = {
-        COLUMN_TOP: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
-        COLUMN_MIDDLE: [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
-        COLUMN_BOTTOM: [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
-
         ZERO: [12, 35, 3, 26, 0, 32, 15],
         ORPHELINS: [17, 34, 6, 1, 20, 14, 31, 9],
         VOISONS: [22, 18, 29, 7, 28, 19, 4, 21, 2, 25],
@@ -47,8 +42,7 @@ class RouletteModel(object):
     }
 
     payout_mapping = {
-        RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1, DOZEN_LEFT: 2,
-        DOZEN_MIDDLE: 2, DOZEN_RIGHT: 2, COLUMN_TOP: 2, COLUMN_MIDDLE: 2, COLUMN_BOTTOM: 2,
+        RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1, DOZEN: 2, COLUMN: 2,
         LINE: 5, CORNER: 8, FOUR: 8, STREET: 11, SPLIT: 17, STRAIGHT: 35
     }
 
@@ -82,15 +76,21 @@ class RouletteModel(object):
     @classmethod
     @cachetools.func.lfu_cache()
     def get_bet_types(cls) -> List[str]:
-        bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, TIER, ORPHELINS, VOISONS, ZERO, FOUR,
-                     COLUMN_TOP, COLUMN_MIDDLE, COLUMN_BOTTOM, DOZEN_LEFT, DOZEN_MIDDLE, DOZEN_RIGHT]
+        bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, TIER, ORPHELINS, VOISONS, ZERO, FOUR]
 
         bet_types.extend(['{}_{}'.format(STRAIGHT, x) for x in range(37)])
         bet_types.extend(['{}_{}_{}'.format(SPLIT, x[0], x[1]) for x in cls.number_mapping[SPLIT]])
         bet_types.extend(['{}_{}_{}_{}'.format(STREET, x[0], x[1], x[2]) for x in cls.number_mapping[STREET]])
         bet_types.extend(['{}_{}_{}_{}_{}'.format(CORNER, x[0], x[1], x[2], x[3]) for x in cls.number_mapping[CORNER]])
+
         bet_types.extend(['{}_{}_{}_{}_{}_{}_{}'.format(LINE, x[0], x[1], x[2], x[3], x[4], x[5]) for x in
                           cls.number_mapping[LINE]])
+
+        bet_types.extend(['{}_{}_{}'.format(COLUMN, 1, 34), '{}_{}_{}'.format(COLUMN, 2, 35),
+                          '{}_{}_{}'.format(COLUMN, 3, 36)])
+
+        bet_types.extend(['{}_{}_{}'.format(DOZEN, 1, 12), '{}_{}_{}'.format(DOZEN, 13, 24),
+                          '{}_{}_{}'.format(DOZEN, 25, 36)])
 
         return bet_types
 
@@ -118,13 +118,14 @@ class RouletteModel(object):
             win_types.append(LOW if 1 <= number <= 18 else HIGH)
 
             win_types.append(
-                COLUMN_TOP if number in cls.number_mapping[COLUMN_TOP] else COLUMN_MIDDLE
-                if number in cls.number_mapping[COLUMN_MIDDLE] else COLUMN_BOTTOM
+                '{}_{}_{}'.format(COLUMN, 1, 34) if number % 3 == 1 else
+                '{}_{}_{}'.format(COLUMN, 2, 35) if number % 2 == 2 else
+                '{}_{}_{}'.format(COLUMN, 3, 36)
             )
 
             win_types.append(
-                DOZEN_LEFT if 1 <= number <= 12 else DOZEN_MIDDLE
-                if 13 <= number <= 22 else DOZEN_RIGHT
+                '{}_{}_{}'.format(DOZEN, 1, 12) if 1 <= number <= 12 else '{}_{}_{}'.format(DOZEN, 13, 24)
+                if 13 <= number <= 24 else '{}_{}_{}'.format(DOZEN, 25, 36)
             )
 
             win_types.append(
