@@ -72,7 +72,7 @@ class DisplayModel(object):
         summary = cls.get_result_summary(bet_objects)
 
         t_headers = [
-            'Total Games', 'Balance (S/C)', 'Total Profit', 'Profit Ratio (%)',
+            'Total Spins', 'Balance (S/C)', 'Total Profit', 'Profit Ratio (%)',
         ]
 
         t_data = [[

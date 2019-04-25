@@ -25,8 +25,11 @@ parser.add_argument('-l', '--table_limit', action='store', type=float, default=1
 parser.add_argument('--balance', action='store', type=float, default=100.0,
                     metavar='NUMBER', help='starting balance')
 parser.add_argument('--backtest', action='store', type=str, default=None,
-                    metavar='FILENAME', help='backtest number source file')
+                    metavar='FILENAME', help='numbers backtest filename')
 
+service = ServiceController()
+
+bet_configs = []
 params = vars(parser.parse_args())
 
 if isinstance(params.get('backtest'), str):
@@ -34,12 +37,8 @@ if isinstance(params.get('backtest'), str):
 else:
     file_path = None
 
-bet_configs = []
-
 for x in params.pop('bet'):
     bet_configs.extend(x)
-
-service = ServiceController()
 
 if __name__ == '__main__':
     print('simulator version: {}'.format(__version__))
