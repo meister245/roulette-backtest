@@ -40,7 +40,7 @@ The above configuration follows the generic format:
 <strategy>,<trigger_pattern>,<wager>,<bet type>,<loss_limit>,<win_limit>
 ```
 
-Strategies are supported:
+Strategies supported:
 ```
 simple, martingale, paroli
 ```
