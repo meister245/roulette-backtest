@@ -5,7 +5,7 @@ class BetCommon(object):
     roulette_mdl = RouletteModel()
 
     def __init__(self, **kwargs):
-        self.type = str(kwargs['type'])
+        self.types = kwargs['types']
         self.size_current = float(kwargs['size'])
         self.size_original = float(kwargs['size'])
         self.limit_win = int(kwargs.get('limit_win', 0))
@@ -43,17 +43,18 @@ class BetCommon(object):
         return True
 
     def get_bet_profit(self, number) -> (bool, float):
+        profit = 0 - self.size_current * len(self.types)
         win_types = self.roulette_mdl.get_win_types(number)
-        win_loss = True if self.type in win_types else False
 
-        profit = 0 - self.size_current
+        for t in self.types:
+            if t in win_types:
+                name = t.split('_', 1).pop(0)
+                profit += round(self.size_current, 2)
+                profit += round(self.size_current * self.roulette_mdl.payout_mapping[name], 2)
 
-        if win_loss:
-            name = self.type.split('_', 1).pop(0)
-            profit += self.size_current
-            profit += self.size_current * self.roulette_mdl.payout_mapping[name]
+        status = True if profit > 0 else False if profit < 0 else None
 
-        return win_loss, round(profit, 2)
+        return status, profit
 
     def get_bet_result(self, number: int, spin: int) -> dict:
         win_loss, profit = self.get_bet_profit(number)
@@ -62,7 +63,7 @@ class BetCommon(object):
             'spin': spin + 1,
             'size': self.size_current,
             'profit': profit,
-            'type': self.type,
+            'type': self.types,
             'win': win_loss
         }
 

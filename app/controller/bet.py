@@ -80,13 +80,12 @@ class BetController(object):
             raise ValueError('invalid bet config - {}'.format(config))
 
         self.bet_fctr.validate_bet_strategy(elements[0])
-        self.roulette_mdl.validate_bet_type(elements[3])
 
         config = {
             'strategy': elements[0],
             'pattern': self.roulette_mdl.get_bet_pattern(elements[1]),
             'size': elements[2],
-            'type': elements[3],
+            'types': [self.roulette_mdl.validate_bet_type(x) for x in elements[3].split(':')],
             'limit_lose': elements[4] if 4 <= len(elements) else 0,
             'limit_win': elements[5] if 5 <= len(elements) else 0
         }

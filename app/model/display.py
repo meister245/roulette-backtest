@@ -45,7 +45,9 @@ class DisplayModel(object):
         t_data = []
 
         for x in results:
-            bets = ['{} - {} - {}'.format('W' if r['win'] else 'L', r['size'], r['type']) for r in x['results']]
+            bets = ['{} - {} - {}'.format('W' if r['win'] else 'N' if r['win'] is None else 'F', r['size'],
+                                          ','.join(r['type'])) for r in x['results']]
+
             bets = '---' if len(bets) == 0 else '\n'.join(bets)
 
             profit = sum([p['profit'] for p in x['results']])
