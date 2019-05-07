@@ -71,7 +71,7 @@ class RouletteModel(object):
         for x in patterns:
             cls.validate_bet_type(x)
 
-        return tuple([x for x in patterns if len(x) != 0])
+        return tuple(reversed([x for x in patterns if len(x) != 0]))
 
     @classmethod
     @cachetools.func.lfu_cache()
