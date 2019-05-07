@@ -52,6 +52,9 @@ class ServiceController(object):
 
     @staticmethod
     def get_rng_numbers(spins):
+        if spins == 0:
+            raise ValueError('invalid spin number for RGN mose')
+
         return [random.randint(0, 36) for x in range(spins)]
 
     @staticmethod
