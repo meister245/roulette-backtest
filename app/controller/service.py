@@ -1,3 +1,4 @@
+import re
 import os
 import os.path
 import random
@@ -64,6 +65,9 @@ class ServiceController(object):
                 numbers = []
 
                 for row in f.read().split('\n'):
+                    if not re.search(r'^([0-9]{1,2}(?:,)?)+$', row):
+                        raise ValueError('invalid data format in file - {}'.format(filename))
+
                     numbers.extend([int(x) for x in row.split(',')])
 
                     if spins != 0 and len(numbers) >= spins:
