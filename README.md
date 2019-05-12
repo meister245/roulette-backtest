@@ -2,7 +2,7 @@ roulette-backtest
 ------------------
 
 Command line tool used to backtest roulette strategies against
-real casino roulette spin data or random generated numbers
+real casino roulette spin data or random generated numbers for European roulette
 
 #### Setup & Usage
 
