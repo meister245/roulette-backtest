@@ -94,7 +94,7 @@ There is real data already included in the `./resources/backtest` folder.
 Place your text file in the folder (comma separated numbers) and the application will use it.
 
 If you want to test your strategy against the full set of data in each file
-set the numbers of spins to 0. The test will terminate early if you lost all your money
+set the numbers of spins to 0, using the `-s 0` switch.
 
 ```
 ./bin/roulette -b martingale,red:red:red:red:red:black,1,black,4,1 -s 0 -m backtest
