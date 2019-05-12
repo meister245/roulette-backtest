@@ -27,7 +27,7 @@ class TestRouletteModel:
         assert len(roulette.get_bet_types()) == 156
 
     def test_get_bet_pattern(self, roulette):
-        assert roulette.get_bet_pattern('black:red:four') == ('black', 'red', 'four')
+        assert roulette.get_bet_pattern('four:red:black') == ('black', 'red', 'four')
 
         with pytest.raises(ValueError):
             roulette.get_bet_pattern(':')
@@ -45,8 +45,8 @@ class TestRouletteModel:
 
     def test_validate_bet_type(self, roulette):
         roulette.validate_bet_type('red')
-        roulette.validate_bet_type('dozen_1_12')
-        roulette.validate_bet_type('column_3_36')
+        roulette.validate_bet_type('dozen_first')
+        roulette.validate_bet_type('column_top')
         roulette.validate_bet_type('straight_0')
         roulette.validate_bet_type('split_1_2')
         roulette.validate_bet_type('street_1_2_3')

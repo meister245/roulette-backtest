@@ -5,6 +5,8 @@ import argparse
 from os.path import dirname, realpath
 
 SRC_DIR = realpath(dirname(__file__) + '/../')
+BACKTEST_DIR = realpath(dirname(SRC_DIR + '/resources/backtest/'))
+
 sys.path.append(SRC_DIR)
 
 from app import __version__
@@ -14,37 +16,28 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-b', '--bet', action='append', nargs='+', required=True,
                     metavar='BET', help='betting configuration')
-parser.add_argument('-m', '--mode', choices=['single', 'aggregate', 'live'], default='single',
-                    metavar='MODE', help='single or aggregate simulation')
+parser.add_argument('-m', '--mode', choices=['rgn', 'backtest'], default='rgn',
+                    metavar='MODE', help='test mode')
 parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                     metavar='NUMBER', help='number of roulette spins played')
-parser.add_argument('-c', '--cycles', action='store', type=int, default=500,
-                    metavar='NUMBER', help='number of aggregated game cycles')
 parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
-                    metavar='NUMBER', help='maximum sum of bet money table accepts')
+                    metavar='NUMBER', help='maximum sum of units the table accepts')
 parser.add_argument('--balance', action='store', type=float, default=100.0,
                     metavar='NUMBER', help='starting balance')
-parser.add_argument('--backtest', action='store', type=str, default=None,
-                    metavar='FILENAME', help='numbers backtest filename')
 
 service = ServiceController()
 
 bet_configs = []
 params = vars(parser.parse_args())
 
-if isinstance(params.get('backtest'), str):
-    file_path = realpath(dirname(SRC_DIR + '/resources/backtest/') + '/{}/'.format(params.pop('backtest')))
-else:
-    file_path = None
-
 for x in params.pop('bet'):
     bet_configs.extend(x)
 
 if __name__ == '__main__':
-    print('simulator version: {}'.format(__version__))
+    print('roulette-backtest version: {}'.format(__version__))
 
     try:
-        service.run_simulation(bet_configs, file_path, **params)
+        service.run_simulation(bet_configs, BACKTEST_DIR, **params)
 
     except KeyboardInterrupt:
         exit('process terminated by user')

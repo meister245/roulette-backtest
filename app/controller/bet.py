@@ -1,5 +1,3 @@
-import random
-
 from app.factory.bet import BetFactory
 from app.model.roulette import RouletteModel
 
@@ -7,10 +5,10 @@ from app.model.roulette import RouletteModel
 class BetController(object):
     roulette_mdl = RouletteModel()
 
-    def __init__(self):
+    def __init__(self, numbers):
         self.results = []
         self.bet_configs = []
-        self.backtest_numbers = None
+        self.numbers = numbers
 
         self.bet_fctr = BetFactory()
 
@@ -22,40 +20,12 @@ class BetController(object):
 
         return total_size
 
-    def get_next_number(self, idx, **kwargs):
-        if kwargs['mode'] == 'live':
-            while True:
-                try:
-                    number = int(input('Next Number: '))
-
-                    if abs(number) > 36:
-                        raise ValueError()
-
-                    return number
-
-                except ValueError:
-                    print('invalid value')
-
-        elif isinstance(self.backtest_numbers, list):
-            return self.backtest_numbers[idx - 1]
-
-        else:
-            return random.randint(0, 36)
-
     def run_simulation(self, **kwargs):
         balance, target_profit = kwargs.pop('balance', 1000.0), kwargs.pop('target_profit', None)
-        spins, backtest = kwargs.pop('spins', None), kwargs.pop('backtest', None)
 
-        if isinstance(spins, (int, float)):
-            return self.run_fixed_spins(spins, balance, **kwargs)
-
-        else:
-            raise ValueError('invalid parameters')
-
-    def run_fixed_spins(self, spins, balance, **kwargs):
-        for spin_count in range(spins):
+        for spin_count in range(len(self.numbers)):
             bet_results = []
-            number = self.get_next_number(spin_count, **kwargs)
+            number = self.numbers[spin_count - 1]
             numbers = [x['number'] for x in self.results]
 
             self.set_bets(numbers)
@@ -80,13 +50,12 @@ class BetController(object):
             raise ValueError('invalid bet config - {}'.format(config))
 
         self.bet_fctr.validate_bet_strategy(elements[0])
-        self.roulette_mdl.validate_bet_type(elements[3])
 
         config = {
             'strategy': elements[0],
             'pattern': self.roulette_mdl.get_bet_pattern(elements[1]),
             'size': elements[2],
-            'type': elements[3],
+            'types': [self.roulette_mdl.validate_bet_type(x) for x in elements[3].split(':')],
             'limit_lose': elements[4] if 4 <= len(elements) else 0,
             'limit_win': elements[5] if 5 <= len(elements) else 0
         }
@@ -100,7 +69,3 @@ class BetController(object):
 
             if self.roulette_mdl.is_pattern_match(config['pattern'], numbers):
                 self.bet_fctr.set_bet(name, **config)
-
-    def set_backest_numbers(self, numbers):
-        if isinstance(numbers, list):
-            self.backtest_numbers = numbers

@@ -53,8 +53,8 @@ class RouletteModel(object):
         last_n_numbers = numbers[-len(pattern):]
 
         for idx, num in enumerate(last_n_numbers):
-            type = cls.validate_bet_type(pattern[idx])
-            p_subset.append(type if type in win_types[num] else None)
+            t = cls.validate_bet_type(pattern[idx])
+            p_subset.append(t if t in win_types[num] else None)
 
             if tuple(p_subset) == pattern:
                 return True
@@ -71,7 +71,7 @@ class RouletteModel(object):
         for x in patterns:
             cls.validate_bet_type(x)
 
-        return tuple([x for x in patterns if len(x) != 0])
+        return tuple(reversed([x for x in patterns if len(x) != 0]))
 
     @classmethod
     @cachetools.func.lfu_cache()
@@ -86,11 +86,8 @@ class RouletteModel(object):
         bet_types.extend(['{}_{}_{}_{}_{}_{}_{}'.format(LINE, x[0], x[1], x[2], x[3], x[4], x[5]) for x in
                           cls.number_mapping[LINE]])
 
-        bet_types.extend(['{}_{}_{}'.format(COLUMN, 1, 34), '{}_{}_{}'.format(COLUMN, 2, 35),
-                          '{}_{}_{}'.format(COLUMN, 3, 36)])
-
-        bet_types.extend(['{}_{}_{}'.format(DOZEN, 1, 12), '{}_{}_{}'.format(DOZEN, 13, 24),
-                          '{}_{}_{}'.format(DOZEN, 25, 36)])
+        bet_types.extend(['{}_bottom'.format(COLUMN), '{}_center'.format(COLUMN), '{}_top'.format(COLUMN)])
+        bet_types.extend(['{}_first'.format(DOZEN), '{}_second'.format(DOZEN), '{}_third'.format(DOZEN)])
 
         return bet_types
 
@@ -118,14 +115,14 @@ class RouletteModel(object):
             win_types.append(LOW if 1 <= number <= 18 else HIGH)
 
             win_types.append(
-                '{}_{}_{}'.format(COLUMN, 1, 34) if number % 3 == 1 else
-                '{}_{}_{}'.format(COLUMN, 2, 35) if number % 2 == 2 else
-                '{}_{}_{}'.format(COLUMN, 3, 36)
+                '{}_bottom'.format(COLUMN) if number % 3 == 1 else
+                '{}_center'.format(COLUMN) if number % 2 == 2 else
+                '{}_top'.format(COLUMN)
             )
 
             win_types.append(
-                '{}_{}_{}'.format(DOZEN, 1, 12) if 1 <= number <= 12 else '{}_{}_{}'.format(DOZEN, 13, 24)
-                if 13 <= number <= 24 else '{}_{}_{}'.format(DOZEN, 25, 36)
+                '{}_first'.format(DOZEN) if 1 <= number <= 12 else '{}_second'.format(DOZEN)
+                if 13 <= number <= 24 else '{}_third'.format(DOZEN)
             )
 
             win_types.append(

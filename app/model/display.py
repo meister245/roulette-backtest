@@ -5,8 +5,29 @@ class DisplayModel(object):
     def __init__(self):
         pass
 
+    @staticmethod
+    def get_result_details(results):
+        t_data = []
+
+        for x in results:
+            bets = ['{} - {} - {}'.format('W' if r['win'] else 'N' if r['win'] is None else 'F', r['size'],
+                                          ','.join(r['type'])) for r in x['results']]
+
+            bets = '---' if len(bets) == 0 else '\n'.join(bets)
+
+            profit = sum([p['profit'] for p in x['results']])
+
+            size = sum([s['size'] for s in x['results']])
+            size = size if size > 0 else '---'
+
+            status = 'W' if profit > 0 else 'L' if profit < 0 else '---'
+
+            t_data.append([x['balance'], bets, size, x['number'], status, profit])
+
+        return t_data
+
     @classmethod
-    def get_result_summary(cls, results):
+    def get_result_summary_rgn(cls, results):
         balance_start = results[0]['balance']
         balance_close = results[-1]['balance']
         win_ratio = cls.get_win_ratio(results)
@@ -23,39 +44,16 @@ class DisplayModel(object):
 
         return summary
 
-    @staticmethod
-    def get_result_summary_aggregated(summaries):
-        avg_profit_ratio = round(sum([x['profit_ratio'] for x in summaries]) / len(summaries), 3)
-        avg_profit_total = round(sum([x['profit_total'] for x in summaries]) / len(summaries), 2)
-        avg_win_ratio = round(sum([x['win_ratio'] for x in summaries]) / len(summaries), 3)
-        avg_spins = round(sum([x['spins'] for x in summaries]) / len(summaries), 2)
-
-        aggregated_summary = {
-            'total_games': len(summaries),
-            'avg_spins': avg_spins,
-            'avg_profit_ratio': avg_profit_ratio,
-            'avg_profit_total': avg_profit_total,
-            'avg_win_ratio': avg_win_ratio
-        }
-
-        return aggregated_summary
-
-    @staticmethod
-    def get_result_details(results):
+    @classmethod
+    def get_result_summary_backtest(cls, results):
         t_data = []
 
-        for x in results:
-            bets = ['{} - {} - {}'.format('W' if r['win'] else 'L', r['size'], r['type']) for r in x['results']]
-            bets = '---' if len(bets) == 0 else '\n'.join(bets)
+        for filename, data in results.items():
+            total_bets = len([x for x in data if len(x['results']) > 0])
+            total_profit = data[-1]['balance'] - data[0]['balance']
+            win_ratio = round(cls.get_win_ratio(data), 2)
 
-            profit = sum([p['profit'] for p in x['results']])
-
-            size = sum([s['size'] for s in x['results']])
-            size = size if size > 0 else '---'
-
-            status = 'W' if profit > 0 else 'L' if profit < 0 else '---'
-
-            t_data.append([x['balance'], bets, size, x['number'], status, profit])
+            t_data.append([filename, len(data), total_bets, total_profit, win_ratio])
 
         return t_data
 
@@ -68,8 +66,8 @@ class DisplayModel(object):
         print(t + '\n')
 
     @classmethod
-    def print_result_summary(cls, bet_objects):
-        summary = cls.get_result_summary(bet_objects)
+    def print_result_summary_rgn(cls, bet_objects):
+        summary = cls.get_result_summary_rgn(bet_objects)
 
         t_headers = [
             'Total Spins', 'Balance (S/C)', 'Total Profit', 'Profit Ratio (%)',
@@ -83,20 +81,12 @@ class DisplayModel(object):
         print('\n' + t + '\n')
 
     @classmethod
-    def print_result_summary_aggregated(cls, summaries):
-        aggr_summary = cls.get_result_summary_aggregated(summaries)
+    def print_result_summary_backtest(cls, results):
+        t_headers = ['Filename', 'Total Spins', 'Total Bets', 'Total Profit', 'Win Ratio (%)']
+        t_data = cls.get_result_summary_backtest(results)
 
-        headers = [
-            'Total Games', 'Avg. Win Ratio (%)', 'Avg. Profit Total', 'Avg. Profit Ratio (%)', 'Avg. Spin Count'
-        ]
-
-        data = [[
-            aggr_summary['total_games'], aggr_summary['avg_win_ratio'], aggr_summary['avg_profit_total'],
-            aggr_summary['avg_profit_ratio'], aggr_summary['avg_spins']
-        ]]
-
-        t = cls.tabulate_data(headers, data, table_format='simple')
-        print('\n' + t + '\n')
+        t = cls.tabulate_data(t_headers, t_data)
+        print(t + '\n')
 
     @staticmethod
     def get_win_ratio(results):
