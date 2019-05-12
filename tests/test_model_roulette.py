@@ -27,7 +27,7 @@ class TestRouletteModel:
         assert len(roulette.get_bet_types()) == 156
 
     def test_get_bet_pattern(self, roulette):
-        assert roulette.get_bet_pattern('black:red:four') == ('black', 'red', 'four')
+        assert roulette.get_bet_pattern('four:red:black') == ('black', 'red', 'four')
 
         with pytest.raises(ValueError):
             roulette.get_bet_pattern(':')
