@@ -17,11 +17,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-b', '--bet', action='append', nargs='+', required=True,
                     metavar='BET', help='betting configuration')
 parser.add_argument('-m', '--mode', choices=['rgn', 'backtest'], default='rgn',
-                    metavar='MODE', help='simulation mode')
+                    metavar='MODE', help='test mode')
 parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                     metavar='NUMBER', help='number of roulette spins played')
 parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
-                    metavar='NUMBER', help='maximum sum of bet money table accepts')
+                    metavar='NUMBER', help='maximum sum of units the table accepts')
 parser.add_argument('--balance', action='store', type=float, default=100.0,
                     metavar='NUMBER', help='starting balance')
 
@@ -34,7 +34,7 @@ for x in params.pop('bet'):
     bet_configs.extend(x)
 
 if __name__ == '__main__':
-    print('simulator version: {}'.format(__version__))
+    print('roulette-backtest version: {}'.format(__version__))
 
     try:
         service.run_simulation(bet_configs, BACKTEST_DIR, **params)
