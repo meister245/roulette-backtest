@@ -11,9 +11,8 @@ class BetMartingale(BetCommon):
         if result['win']:
             self.size_current = self.size_original
 
-        elif not result['win'] and self.size_current * 2 <= table_limit:
-            self.size_current *= 2
+        elif not result['win'] and self.size_current * len(self.types) + 1 <= table_limit:
+            self.size_current *= len(self.types) + 1
 
-        elif not result['win'] and self.size_current * 2 > table_limit:
+        elif not result['win'] and self.size_current * len(self.types) + 1 > table_limit:
             pass
-

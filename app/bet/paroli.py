@@ -8,10 +8,10 @@ class BetParoli(BetCommon):
     def update_bet_size(self, result, **kwargs):
         table_limit = kwargs.get('table_limit', 150.0)
 
-        if result['win'] and self.size_current * 2 <= table_limit:
-            self.size_current *= 2
+        if result['win'] and self.size_current * len(self.types) + 1 <= table_limit:
+            self.size_current *= len(self.types) + 1
 
-        elif result['win'] and self.size_current * 2 > table_limit:
+        elif result['win'] and self.size_current * len(self.types) + 1 > table_limit:
             pass
 
         elif not result['win']:
