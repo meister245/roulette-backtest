@@ -43,7 +43,9 @@ The above configuration follows the generic format:
 
 Strategies supported:
 ```
-simple, martingale, paroli
+simple (no progression)
+martingale (multiply after losing)
+paroli (multiply after winning)
 ```
 
 Valid bet types:
@@ -56,7 +58,7 @@ red, black, even, odd, low, high, tier, orphelins, voisons, zero, four, column_b
 Test your strategy against a random number generator
 
 ```
-./bin/roulette ./roulette -b martingale,odd:odd:even,2,even,3,1 -b martingale,even:even:odd,1,odd,3,1 -s 8
+./bin/roulette -b martingale,odd:odd:even,2,even,3,1 -b martingale,even:even:odd,1,odd,3,1 -s 8
 ```
 
 ```
