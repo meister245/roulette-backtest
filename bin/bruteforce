@@ -37,9 +37,6 @@ bet_configs = []
 params = vars(parser.parse_args())
 
 if __name__ == '__main__':
-    print('roulette-backtest version: {}'.format(__version__))
-    print('-' * 32)
-
     try:
         result = service.run_bruteforce(BACKTEST_DIR, **params)
         print(result)
