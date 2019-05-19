@@ -3,18 +3,12 @@ from typing import List
 import cachetools.func
 
 COLUMN, DOZEN = 'column', 'dozen'
-TIER, ORPHELINS, VOISONS, ZERO = 'tier', 'orphelins', 'voisons', 'zero'
 RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
 
 
 class RouletteModel(object):
     number_mapping = {
-        ZERO: [12, 35, 3, 26, 0, 32, 15],
-        ORPHELINS: [17, 34, 6, 1, 20, 14, 31, 9],
-        VOISONS: [22, 18, 29, 7, 28, 19, 4, 21, 2, 25],
-        TIER: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
-
         RED: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
         BLACK: [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],
 
@@ -76,7 +70,7 @@ class RouletteModel(object):
     @classmethod
     @cachetools.func.lfu_cache()
     def get_bet_types(cls) -> List[str]:
-        bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, TIER, ORPHELINS, VOISONS, ZERO, FOUR]
+        bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, FOUR]
 
         bet_types.extend(['{}_{}'.format(STRAIGHT, x) for x in range(37)])
         bet_types.extend(['{}_{}_{}'.format(SPLIT, x[0], x[1]) for x in cls.number_mapping[SPLIT]])
@@ -107,7 +101,6 @@ class RouletteModel(object):
 
         if number == 0:
             win_types.append(FOUR)
-            win_types.append(ZERO)
 
         elif number != 0:
             win_types.append(RED if number in cls.number_mapping[RED] else BLACK)
@@ -123,12 +116,6 @@ class RouletteModel(object):
             win_types.append(
                 '{}_first'.format(DOZEN) if 1 <= number <= 12 else '{}_second'.format(DOZEN)
                 if 13 <= number <= 24 else '{}_third'.format(DOZEN)
-            )
-
-            win_types.append(
-                TIER if number in cls.number_mapping[TIER] else ORPHELINS
-                if number in cls.number_mapping[ORPHELINS] else VOISONS
-                if number in cls.number_mapping[VOISONS] else ZERO
             )
 
             if number in cls.number_mapping[FOUR]:

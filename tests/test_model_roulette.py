@@ -24,7 +24,7 @@ class TestRouletteModel:
             roulette.is_pattern_match(('asd', 'asd'), (1, 1))
 
     def test_get_bet_types(self, roulette):
-        assert len(roulette.get_bet_types()) == 156
+        assert len(roulette.get_bet_types()) == 152
 
     def test_get_bet_pattern(self, roulette):
         assert roulette.get_bet_pattern('four:red:black') == ('black', 'red', 'four')
