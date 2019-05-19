@@ -35,6 +35,7 @@ for x in params.pop('bet'):
 
 if __name__ == '__main__':
     print('roulette-backtest version: {}'.format(__version__))
+    print('-' * 32)
 
     try:
         service.run_simulation(bet_configs, BACKTEST_DIR, **params)
