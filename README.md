@@ -1,4 +1,4 @@
-roulette-backtest
+roulette-simulator
 -----------------
 
 Command line tool used to backtest roulette strategies against
