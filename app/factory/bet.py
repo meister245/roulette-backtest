@@ -1,6 +1,6 @@
-from app.bet.martingale import BetMartingale
-from app.bet.paroli import BetParoli
-from app.bet.simple import BetSimple
+from app.model.martingale import BetMartingale
+from app.model.paroli import BetParoli
+from app.model.simple import BetSimple
 
 
 class BetFactory(object):
@@ -8,13 +8,12 @@ class BetFactory(object):
         'simple': BetSimple, 'martingale': BetMartingale, 'paroli': BetParoli
     }
 
-    def __init__(self):
-        self.bets = []
-
-    def set_bet(self, name, **kwargs):
-        self.bets.append(self.bet_mapping[name](**kwargs))
+    @classmethod
+    def get_bet(cls, name, **kwargs):
+        cls.validate_bet_strategy(name)
+        return cls.bet_mapping[name](**kwargs)
 
     @classmethod
     def validate_bet_strategy(cls, name) -> None:
         if name not in cls.bet_mapping.keys():
-            raise ValueError('invalid bet strategy name - {}'.format(name))
+            raise ValueError(f'invalid model strategy name - {name}')
