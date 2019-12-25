@@ -1,8 +1,8 @@
-from app.model.roulette import RouletteModel
+from app.controller.roulette import RouletteController
 
 
-class BetCommon(object):
-    roulette_mdl = RouletteModel()
+class BetModel(object):
+    roulette_mdl = RouletteController()
 
     def __init__(self, **kwargs):
         self.types = kwargs['types']

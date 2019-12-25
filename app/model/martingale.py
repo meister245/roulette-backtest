@@ -1,9 +1,9 @@
-from app.bet.common import BetCommon
+from app.model.bet import BetModel
 
 
-class BetMartingale(BetCommon):
+class BetMartingale(BetModel):
     def __init__(self, **kwargs):
-        BetCommon.__init__(self, **kwargs)
+        BetModel.__init__(self, **kwargs)
 
     def update_bet_size(self, result, **kwargs):
         table_limit = kwargs.get('table_limit', 150.0)
