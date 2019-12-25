@@ -2,44 +2,44 @@
 
 import sys
 import argparse
-from os.path import dirname, realpath
+from os.path import dirname, realpath, join
 
-SRC_DIR = realpath(dirname(__file__) + '/../')
-BACKTEST_DIR = realpath(dirname(SRC_DIR + '/resources/backtest/'))
+SRC_DIR = realpath(join(dirname(__file__), '..'))
+BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
 
 sys.path.append(SRC_DIR)
 
-from app import __version__
 from app.controller.service import ServiceController
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('-m', '--mode', choices=['rgn', 'backtest'], default='rgn',
-                    metavar='MODE', help='test mode')
-parser.add_argument('-s', '--spins', action='store', type=int, default=50,
-                    metavar='NUMBER', help='number of roulette spins played')
-parser.add_argument('-pc', '--patterns-complexity', action='store', type=int, default=2,
-                    metavar='NUMBER', help='bruteforce pattern complexity')
-parser.add_argument('-pl', '--patterns-list', action='store', type=str, default=False,
-                    metavar='BET TYPES', help='comma separated bet types')
-parser.add_argument('-bc', '--bets-complexity', action='store', type=int, default=1,
-                    metavar='NUMBER', help='bruteforce bet complexity')
-parser.add_argument('-bl', '--bets-list', action='store', type=str, default=False,
-                    metavar='BET TYPES', help='comma separated bet types')
-parser.add_argument('--min-profit', action='store', type=int, default=5,
-                    metavar='NUMBER', help='minimal required profit')
-parser.add_argument('--custom', action='store', type=str, default=False,
-                    metavar='CONFIG', help='custom bruteforce options')
 
 service = ServiceController()
 
-bet_configs = []
-params = vars(parser.parse_args())
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
+                        metavar='MODE', help='test mode')
+    parser.add_argument('-s', '--spins', action='store', type=int, default=50,
+                        metavar='NUMBER', help='number of roulette spins played')
+    parser.add_argument('-pc', '--patterns-complexity', action='store', type=int, default=2,
+                        metavar='NUMBER', help='max combination size')
+    parser.add_argument('-pl', '--patterns-list', action='store', type=str, default='',
+                        metavar='BET TYPES', help='comma separated bet types')
+    parser.add_argument('-bc', '--bets-complexity', action='store', type=int, default=1,
+                        metavar='NUMBER', help='max combination size')
+    parser.add_argument('-bl', '--bets-list', action='store', type=str, default='',
+                        metavar='BET TYPES', help='comma separated bet types')
+    parser.add_argument('--min-profit', action='store', type=int, default=5,
+                        metavar='NUMBER', help='minimal required profit')
+    parser.add_argument('--custom', action='store', type=str, default='',
+                        metavar='CONFIG', help='custom options')
+
+    return parser.parse_args()
+
 
 if __name__ == '__main__':
     try:
-        result = service.run_bruteforce(BACKTEST_DIR, **params)
-        print(result)
+        params = parse_args()
+        result = service.run_bruteforce(BACKTEST_DIR, **vars(params))
 
     except KeyboardInterrupt:
         exit('process terminated by user')
