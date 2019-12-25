@@ -1,14 +1,14 @@
-from app.model.roulette import RouletteModel
+from app.controller.roulette import RouletteController
 
 import pytest
 
 
 @pytest.fixture(scope='class')
 def roulette():
-    return RouletteModel()
+    return RouletteController()
 
 
-class TestRouletteModel:
+class TestRouletteController:
     def test_is_pattern_match(self, roulette):
         assert roulette.is_pattern_match(('red', 'red'), (1, 1))
         assert roulette.is_pattern_match(('straight_1', 'straight_1'), (2, 2, 1, 1))
