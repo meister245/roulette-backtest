@@ -1,6 +1,6 @@
-from app.model.martingale import BetMartingale
-from app.model.paroli import BetParoli
-from app.model.simple import BetSimple
+from ..model.martingale import BetMartingale
+from ..model.paroli import BetParoli
+from ..model.simple import BetSimple
 
 
 class BetFactory(object):

@@ -1,5 +1,5 @@
-from app.factory.bet import BetFactory
-from app.controller.roulette import RouletteController
+from ..factory.bet import BetFactory
+from ..controller.roulette import RouletteController
 
 
 class BetController(object):

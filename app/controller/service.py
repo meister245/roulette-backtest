@@ -3,9 +3,9 @@ import os
 import os.path
 import random
 
-from app.controller.analyze import AnalyzeController
-from app.controller.bet import BetController
-from app.controller.display import DisplayController
+from ..controller.analyze import AnalyzeController
+from ..controller.bet import BetController
+from ..controller.display import DisplayController
 
 
 class ServiceController(object):

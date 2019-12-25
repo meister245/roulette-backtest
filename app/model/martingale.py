@@ -1,4 +1,4 @@
-from app.model.bet import BetModel
+from ..model.bet import BetModel
 
 
 class BetMartingale(BetModel):

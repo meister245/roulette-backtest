@@ -1,6 +1,6 @@
 import itertools
 
-from app.controller.roulette import RouletteController
+from ..controller.roulette import RouletteController
 
 
 class AnalyzeController(object):
