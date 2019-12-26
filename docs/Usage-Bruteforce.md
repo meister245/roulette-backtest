@@ -5,10 +5,8 @@ bruteforce
 
 `./bin/bruteforce -h`
 
-Processing the cartesian product of possible patterns combined with possible bets takes exponential time to finish.
-It is strongly recommended to restrict the number of patterns / bets to achieve optimal runs.
-
-#### Example
+Processing the cartesian product of possible combination of betting patterns and bet placements takes exponential time to finish.
+It is strongly recommended to restrict the number of patterns and / or bet types to achieve optimal runs.
 
 The following command will:
 
@@ -17,10 +15,17 @@ The following command will:
 * Iterate through the cartesian product of the generated bet patterns and bet combinations and play a virtual match of 500 spins (or less if it goes bust sooner)
 * Backtest using real casino numbers (alternatively random numbers)
 * Display any resulting bet configuration, which resulted in greater profit than the defined threshold (default: 5.0)
-* * Using backtesting, if there are multiple resource files simulation is run on each resource, profit is based on average profit
+
+Profit calculation:
+
+* The simulation reads all data files in the `/resources/backtest/` folder
+* Betting configurations are run for each data file and the resulting profit is stored
+* Average is calculated on resulting profit numbers (6 data files -> average of 6 simulations)
+
+#### Example
 
 ```
-./bin/bruteforce -s 500 -m backtest -pl even,odd,high,low,red,black -bl dozen_first,dozen_second,dozen_third --min-profit 5.0
+./bin/bruteforce -s 500 -pl even,odd,high,low,red,black -bl dozen_first,dozen_second,dozen_third --min-profit 5.0
 ```
 
 Total Bet Patterns: 6 + 21 + 56 + 126 + 252 + 462 = 923
