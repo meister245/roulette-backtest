@@ -17,8 +17,6 @@ service = ServiceController()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
-                        metavar='MODE', help='test mode')
     parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                         metavar='NUMBER', help='number of roulette spins played')
     parser.add_argument('-pl', '--patterns-list', action='store', type=str, default='',
