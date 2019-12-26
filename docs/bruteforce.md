@@ -1,54 +1,41 @@
 bruteforce
 ----------
 
-Display usage
-```
-./bin/bruteforce -h
-```
+#### Description & Usage
 
-#### Description
+`./bin/bruteforce -h`
 
-Building on roulette backtesting, bruteforce is used to test all possible bet configurations
-
-Processing all possible patterns multiplied by all possible bets, this is CPU bound process.
+Processing the cartesian product of possible patterns combined with possible bets takes exponential time to finish.
 It is strongly recommended to restrict the number of patterns / bets to achieve optimal runs.
 
 #### Example
 
-```
-./bin/bruteforce -s 500 -m backtest -pl even,odd,high,low,red,black,dozen_first,dozen_second,dozen_third -bl even,odd,high,low,red,black,dozen_first,dozen_second,dozen_third
-```
+The following command will:
+
+* Generate all possible betting patterns from the list of provided bet types. (combinations with replacement)
+* Generate all possible unique bets from the list of provided bet types. (combinations with no replacement)
+* Iterate through the cartesian product of the generated bet patterns and bet combinations and play a virtual match of 500 spins (or less if it goes bust sooner)
+* Backtest using real casino numbers (alternatively random numbers)
+* Display any resulting bet configuration, which resulted in greater profit than the defined threshold (default: 5.0)
+* * Using backtesting, if there are multiple resource files simulation is run on each resource, profit is based on average profit
 
 ```
-roulette-backtest version: 1.0.0
---------------------------------
-generating bet configurations
-{'config': 'simple,dozen_third:dozen_second,1,dozen_second,1,1', 'avg_profit': 5.5}
-{'config': 'simple,dozen_third:low,1,even,1,1', 'avg_profit': 5.125}
-{'config': 'simple,high:low,1,even,1,1', 'avg_profit': 6.375}
-{'config': 'simple,even:black,1,even,1,1', 'avg_profit': 5.375}
-{'config': 'simple,dozen_second:black,1,even,1,1', 'avg_profit': 5.625}
-{'config': 'simple,dozen_first:red,1,dozen_first,1,1', 'avg_profit': 5.0}
-{'config': 'simple,dozen_first:dozen_second,1,dozen_first,1,1', 'avg_profit': 5.25}
-{'config': 'simple,dozen_third:dozen_first,1,dozen_third,1,1', 'avg_profit': 6.125}
-{'config': 'simple,high:dozen_first,1,dozen_third,1,1', 'avg_profit': 9.125}
-{'config': 'simple,dozen_second:low,1,dozen_third,1,1', 'avg_profit': 7.75}
-{'config': 'simple,high:low,1,dozen_third,1,1', 'avg_profit': 7.5}
-{'config': 'simple,odd:even,1,dozen_third,1,1', 'avg_profit': 6.5}
-{'config': 'simple,odd:dozen_first,1,dozen_third,1,1', 'avg_profit': 5.875}
-{'config': 'simple,black:dozen_first,1,dozen_third,1,1', 'avg_profit': 6.0}
-{'config': 'simple,black:even,1,dozen_third,1,1', 'avg_profit': 6.5}
-{'config': 'simple,dozen_second:red,1,dozen_third,1,1', 'avg_profit': 5.375}
-{'config': 'simple,black:red,1,dozen_third,1,1', 'avg_profit': 7.375}
-{'config': 'simple,black:low,1,dozen_third,1,1', 'avg_profit': 10.25}
-{'config': 'simple,red:dozen_second,1,low,1,1', 'avg_profit': 6.0}
-{'config': 'simple,dozen_third:dozen_first,1,high,1,1', 'avg_profit': 5.125}
-{'config': 'simple,high:dozen_first,1,high,1,1', 'avg_profit': 5.375}
-{'config': 'simple,odd:high,1,high,1,1', 'avg_profit': 5.25}
-{'config': 'simple,odd:even,1,high,1,1', 'avg_profit': 6.25}
-{'config': 'simple,odd:black,1,high,1,1', 'avg_profit': 5.875}
-{'config': 'simple,black:dozen_first,1,high,1,1', 'avg_profit': 7.5}
-{'config': 'simple,black:even,1,high,1,1', 'avg_profit': 5.5}
-{'config': 'simple,black:red,1,high,1,1', 'avg_profit': 7.25}
-{'config': 'simple,black:low,1,high,1,1', 'avg_profit': 9.375}
+./bin/bruteforce -s 500 -m backtest -pl even,odd,high,low,red,black -bl dozen_first,dozen_second,dozen_third --min-profit 5.0
+```
+
+Total Bet Patterns: 6 + 21 + 56 + 126 + 252 + 462 = 923
+Total Bet Combinations: 3 + 3 + 1 = 7
+Total Bet Configurations: 923 * 7 = 6461
+
+```
+roulette-backtest - 2.1.0
+-------------------------
+generating bet configurations - strategy: simple - min profit: 5.0
+{'config': 'simple,black,1,dozen_third,1,1', 'avg_profit': 5.125}
+{'config': 'simple,high,1,dozen_third,1,1', 'avg_profit': 5.75}
+{'config': 'simple,black:low,1,dozen_third,1,1', 'avg_profit': 5.75}
+{'config': 'simple,black:even,1,dozen_third,1,1', 'avg_profit': 5.625}
+{'config': 'simple,high,1,dozen_second:dozen_third,1,1', 'avg_profit': 5.375}
+{'config': 'simple,black:even,1,dozen_second:dozen_third,1,1', 'avg_profit': 5.5}
+processed 6461 combination
 ```
