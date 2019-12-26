@@ -14,7 +14,7 @@ class ServiceController(object):
     roulette_ctrl = RouletteController()
 
     def run_simulation(self, bet_configs, backtest_path, **kwargs) -> None:
-        mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spin', 50)
+        mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spins', 50)
 
         if mode == 'rng':
             data = self.get_rng_numbers(spins)
@@ -28,7 +28,7 @@ class ServiceController(object):
             self.display_ctrl.print_result_summary_backtest(results)
 
     def run_bruteforce(self, backtest_path, **kwargs):
-        spins = kwargs.pop('spin', 50)
+        spins = kwargs.pop('spins', 50)
 
         data = self.get_backtest_numbers(backtest_path, spins)
         result = self.__bruteforce(data, **kwargs)
