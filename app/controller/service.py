@@ -2,14 +2,15 @@ import re
 import os
 import os.path
 import random
+import itertools
 
-from ..controller.analyze import AnalyzeController
 from ..controller.bet import BetController
 from ..controller.display import DisplayController
+from ..controller.roulette import RouletteController
 
 
 class ServiceController(object):
-    ana_ctrl = AnalyzeController()
+    roulette_ctrl = RouletteController()
     display_ctrl = DisplayController()
 
     def run_simulation(self, bet_configs, backtest_path, **kwargs) -> None:
@@ -72,28 +73,20 @@ class ServiceController(object):
         return results
 
     def __bruteforce(self, mode, data, **kwargs):
+        counter, total_results = 0, []
         pl, bl = kwargs['patterns_list'], kwargs['bets_list']
-        pc, bc = kwargs['patterns_complexity'], kwargs['bets_complexity']
+        strategy, win_limit, lose_limit = kwargs['strategy'], kwargs['win_limit'], kwargs['lose_limit']
 
-        counter = 1
-        total_results = []
-
-        options = {x.split(':')[0]: x.split(':')[1] for x in kwargs['custom'].split(',')} if kwargs['custom'] else {}
-
-        strategy = options.get('strategy', 'simple')
-        win_limit = options.get('win_limit', '1')
-        loss_limit = options.get('loss_limit', '1')
-
-        print('generating bet configurations')
+        print(f'generating bet configurations - strategy: {strategy} - min profit: {kwargs["min_profit"]}')
 
         f = self.__bruteforce_rng if mode == 'rng' else self.__bruteforce_backtest
 
-        for b in self.ana_ctrl.generate_bet_types_combinations(bc, custom_list=bl):
-            for p in self.ana_ctrl.generate_bet_patterns_combinations(pc, custom_list=pl):
+        for b in self.generate_bet_types_combinations(bl, repl=False):
+            for p in self.generate_bet_types_combinations(pl, repl=True):
                 counter += 1
-                config = f'{strategy},{p},1,{b},{loss_limit},{win_limit}'
+                config = f'{strategy},{p},1,{b},{lose_limit},{win_limit}'
+                print(f'processing combination {counter}\r', end='')
 
-                print('processing combination {0}\r'.format(counter), end='')
                 result = f(config, data, **kwargs)
 
                 if not result:
@@ -116,9 +109,16 @@ class ServiceController(object):
         return {'config': config, 'profit': profit}
 
     def __bruteforce_backtest(self, config, data, **kwargs):
-        avg_profit = self.get_backtest_avg_profit(data, config, **kwargs)
+        profits = []
 
-        if avg_profit == 0:
+        for filename, numbers in data.items():
+            s_results = self.__simulation_single(config, numbers, **kwargs)
+            profit = s_results[-1]['balance'] - s_results[0]['balance']
+            profits.append(profit if profit > 0 else 0)
+
+        avg_profit = sum(profits) / len(profits)
+
+        if avg_profit < kwargs['min_profit']:
             return False
 
         return {'config': config, 'avg_profit': avg_profit}
@@ -130,25 +130,18 @@ class ServiceController(object):
 
         return tuple([random.randint(0, 36) for x in range(spins)])
 
-    def get_backtest_avg_profit(self, backtest_data, bet_config, **kwargs):
-        profits = []
+    @classmethod
+    def generate_bet_types_combinations(cls, bet_types, repl=False):
+        f = itertools.combinations_with_replacement if repl else itertools.combinations
 
-        for filename, numbers in backtest_data.items():
-            s_results = self.__simulation_single(bet_config, numbers, **kwargs)
+        if isinstance(bet_types, str) and len(bet_types) > 0:
+            bet_types = set(bet_types.split(','))
+        else:
+            bet_types = cls.roulette_ctrl.get_bet_types()
 
-            profit = s_results[-1]['balance'] - s_results[0]['balance']
-
-            if profit < 30 * -1:
-                return 0
-
-            profits.append(profit)
-
-        avg_profit = sum(profits) / len(profits)
-
-        if avg_profit < kwargs['min_profit']:
-            return 0
-
-        return avg_profit
+        for l in range(1, len(bet_types) + 1):
+            for combo in f(bet_types, l):
+                yield ':'.join(combo)
 
     @staticmethod
     def get_backtest_numbers(dir_path, spins):
