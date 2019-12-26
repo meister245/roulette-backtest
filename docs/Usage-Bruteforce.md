@@ -28,9 +28,9 @@ Profit calculation:
 ./bin/bruteforce -s 500 -pl even,odd,high,low,red,black -bl dozen_first,dozen_second,dozen_third --min-profit 5.0
 ```
 
-Total Bet Patterns: 6 + 21 + 56 + 126 + 252 + 462 = 923
-Total Bet Combinations: 3 + 3 + 1 = 7
-Total Bet Configurations: 923 * 7 = 6461
+* Total Bet Patterns: 6 + 21 + 56 + 126 + 252 + 462 = 923
+* Total Bet Combinations: 3 + 3 + 1 = 7
+* Total Bet Configurations: 923 * 7 = 6461
 
 ```
 roulette-backtest - 2.1.0
