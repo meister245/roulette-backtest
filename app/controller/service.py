@@ -10,8 +10,8 @@ from ..controller.roulette import RouletteController
 
 
 class ServiceController(object):
-    roulette_ctrl = RouletteController()
     display_ctrl = DisplayController()
+    roulette_ctrl = RouletteController()
 
     def run_simulation(self, bet_configs, backtest_path, **kwargs) -> None:
         mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spin', 50)
@@ -28,21 +28,12 @@ class ServiceController(object):
             self.display_ctrl.print_result_summary_backtest(results)
 
     def run_bruteforce(self, backtest_path, **kwargs):
-        mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spin', 50)
-        sort_key = 'profit' if mode == 'rng' else 'avg_profit'
+        spins = kwargs.pop('spin', 50)
 
-        if mode == 'rng':
-            data = self.get_rng_numbers(spins)
-            result = self.__bruteforce(mode, data, **kwargs)
+        data = self.get_backtest_numbers(backtest_path, spins)
+        result = self.__bruteforce(data, **kwargs)
 
-        elif mode == 'backtest':
-            data = self.get_backtest_numbers(backtest_path, spins)
-            result = self.__bruteforce(mode, data, **kwargs)
-
-        else:
-            raise ValueError(f'invalid mode - {mode}')
-
-        return sorted(result, key=lambda k: k[sort_key], reverse=True)
+        return sorted(result, key=lambda k: k['avg_profit'], reverse=True)
 
     @staticmethod
     def __simulation_single(bet_configs, numbers, **kwargs):
@@ -72,56 +63,39 @@ class ServiceController(object):
 
         return results
 
-    def __bruteforce(self, mode, data, **kwargs):
+    def __bruteforce(self, data, **kwargs):
         counter, total_results = 0, []
         pl, bl = kwargs['patterns_list'], kwargs['bets_list']
         strategy, win_limit, lose_limit = kwargs['strategy'], kwargs['win_limit'], kwargs['lose_limit']
 
         print(f'generating bet configurations - strategy: {strategy} - min profit: {kwargs["min_profit"]}')
 
-        f = self.__bruteforce_rng if mode == 'rng' else self.__bruteforce_backtest
-
         for b in self.generate_bet_types_combinations(bl, repl=False):
             for p in self.generate_bet_types_combinations(pl, repl=True):
                 counter += 1
+                profits = []
                 config = f'{strategy},{p},1,{b},{lose_limit},{win_limit}'
+
                 print(f'processing combination {counter}\r', end='')
 
-                result = f(config, data, **kwargs)
+                for filename, numbers in data.items():
+                    s_results = self.__simulation_single(config, numbers, **kwargs)
+                    profit = s_results[-1]['balance'] - s_results[0]['balance']
+                    profits.append(profit if profit > 0 else 0)
 
-                if not result:
+                avg_profit = sum(profits) / len(profits)
+
+                if avg_profit < kwargs['min_profit']:
                     continue
 
-                print(result)
+                result = {'config': config, 'avg_profit': avg_profit}
                 total_results.append(result)
+
+                print(result)
 
         print(f'processed {counter} combinations')
 
         return total_results
-
-    def __bruteforce_rng(self, config, data, **kwargs):
-        s_results = self.__simulation_single(config, data, **kwargs)
-        profit = s_results[-1]['balance'] - s_results[0]['balance']
-
-        if profit < kwargs['min_profit']:
-            return False
-
-        return {'config': config, 'profit': profit}
-
-    def __bruteforce_backtest(self, config, data, **kwargs):
-        profits = []
-
-        for filename, numbers in data.items():
-            s_results = self.__simulation_single(config, numbers, **kwargs)
-            profit = s_results[-1]['balance'] - s_results[0]['balance']
-            profits.append(profit if profit > 0 else 0)
-
-        avg_profit = sum(profits) / len(profits)
-
-        if avg_profit < kwargs['min_profit']:
-            return False
-
-        return {'config': config, 'avg_profit': avg_profit}
 
     @staticmethod
     def get_rng_numbers(spins):
