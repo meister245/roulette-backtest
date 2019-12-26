@@ -9,6 +9,7 @@ BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
 
 sys.path.append(SRC_DIR)
 
+from app import __version__
 from app.controller.service import ServiceController
 
 service = ServiceController()
@@ -31,6 +32,8 @@ def parse_args():
 
 
 if __name__ == '__main__':
+    print(f'roulette-backtest - {__version__}\n' + '-' * 25)
+
     try:
         args = parse_args()
         service.run_simulation(args.bet, BACKTEST_DIR, **vars(args))

@@ -9,6 +9,7 @@ BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
 
 sys.path.append(SRC_DIR)
 
+from app import __version__
 from app.controller.service import ServiceController
 
 service = ServiceController()
@@ -20,23 +21,25 @@ def parse_args():
                         metavar='MODE', help='test mode')
     parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                         metavar='NUMBER', help='number of roulette spins played')
-    parser.add_argument('-pc', '--patterns-complexity', action='store', type=int, default=2,
-                        metavar='NUMBER', help='max combination size')
     parser.add_argument('-pl', '--patterns-list', action='store', type=str, default='',
                         metavar='BET TYPES', help='comma separated bet types')
-    parser.add_argument('-bc', '--bets-complexity', action='store', type=int, default=1,
-                        metavar='NUMBER', help='max combination size')
     parser.add_argument('-bl', '--bets-list', action='store', type=str, default='',
                         metavar='BET TYPES', help='comma separated bet types')
-    parser.add_argument('--min-profit', action='store', type=int, default=5,
+    parser.add_argument('--min-profit', action='store', type=float, default=5.0,
                         metavar='NUMBER', help='minimal required profit')
-    parser.add_argument('--custom', action='store', type=str, default='',
-                        metavar='CONFIG', help='custom options')
+    parser.add_argument('--strategy', action='store', type=str, default='simple',
+                        metavar='STRATEGY', help='bet strategy')
+    parser.add_argument('--win-limit', action='store', type=int, default=1,
+                        metavar='STRATEGY', help='bet strategy')
+    parser.add_argument('--lose-limit', action='store', type=int, default=1,
+                        metavar='STRATEGY', help='bet strategy')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
+    print(f'roulette-backtest - {__version__}\n' + '-' * 25)
+
     try:
         params = parse_args()
         result = service.run_bruteforce(BACKTEST_DIR, **vars(params))
