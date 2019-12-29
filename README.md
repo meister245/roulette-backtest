@@ -1,4 +1,4 @@
-roulette-simulator
+roulette-backtest
 -----------------
 
 CLI application used to backtest roulette strategies against
