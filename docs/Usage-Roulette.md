@@ -53,7 +53,7 @@ line_1_2_3_4_5_6, line_4_5_6_7_8_9, line_7_8_9_10_11_12, line_10_11_12_13_14_15,
 Test your strategy against a random number generator
 
 ```
-./bin/roulette -b martingale,odd:odd:even,2,even,3,1 -b martingale,even:even:odd,1,odd,3,1 -s 8
+./bin/roulette martingale,odd:odd:even,2,even,3,1 martingale,even:even:odd,1,odd,3,1 -s 8
 ```
 
 ```
@@ -93,7 +93,7 @@ If you want to test your strategy against the full set of data in each file
 set the numbers of spins to 0, using the `-s 0` switch.
 
 ```
-./bin/roulette -b martingale,red:red:red:red:red:black,1,black,4,1 -s 0 -m backtest
+./bin/roulette martingale,red:red:red:red:red:black,1,black,4,1 -s 0 -m backtest
 ```
 
 ```

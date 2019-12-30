@@ -17,7 +17,7 @@ service = ServiceController()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--bet', action='extend', nargs='+',
+    parser.add_argument('bet', action='extend', nargs='+',
                         metavar='BET', help='betting configuration')
     parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
                         metavar='MODE', help='test mode')
