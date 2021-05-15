@@ -1,7 +1,7 @@
 import tabulate
 
 
-class DisplayController(object):
+class DisplayController:
     @staticmethod
     def get_result_details(results):
         t_data = []

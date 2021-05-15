@@ -1,8 +1,10 @@
-from ..controller.roulette import RouletteController
+from typing import Tuple
+
+from ..roulette import Roulette
 
 
-class BetModel(object):
-    roulette_mdl = RouletteController()
+class BetCommon:
+    roulette = Roulette()
 
     def __init__(self, **kwargs):
         self.types = kwargs['types']
@@ -37,20 +39,21 @@ class BetModel(object):
         if self.limit_lose != 0 and self.lose_current == self.limit_lose:
             return False
 
-        elif self.limit_win != 0 and self.win_current == self.limit_win:
+        if self.limit_win != 0 and self.win_current == self.limit_win:
             return False
 
         return True
 
-    def get_bet_profit(self, number) -> (bool, float):
+    def get_bet_profit(self, number) -> Tuple[bool, float]:
         profit = 0 - self.size_current * len(self.types)
-        win_types = self.roulette_mdl.get_win_types(number)
+        win_types = self.roulette.get_win_types(number)
 
         for t in self.types:
             if t in win_types:
                 name = t.split('_', 1).pop(0)
                 profit += round(self.size_current, 2)
-                profit += round(self.size_current * self.roulette_mdl.payout_mapping[name], 2)
+                profit += round(self.size_current *
+                                self.roulette.payout_mapping[name], 2)
 
         status = True if profit > 0 else False if profit < 0 else None
 

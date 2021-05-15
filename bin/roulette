@@ -7,12 +7,10 @@ from os.path import dirname, realpath, join
 SRC_DIR = realpath(join(dirname(__file__), '..'))
 BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
 
-sys.path.append(SRC_DIR)
 
-from app import __version__
-from app.controller.service import ServiceController
-
-service = ServiceController()
+if __name__ == '__main__':
+    sys.path.append(SRC_DIR)
+    from app.controller import ServiceController
 
 
 def parse_args():
@@ -32,14 +30,14 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    print(f'roulette-backtest - {__version__}\n' + '-' * 25)
+    service = ServiceController()
 
     try:
         args = parse_args()
         service.run_simulation(args.bet, BACKTEST_DIR, **vars(args))
 
     except KeyboardInterrupt:
-        exit('process terminated by user')
+        sys.exit('process terminated by user')
 
     except ValueError as e:
-        exit(str(e))
+        sys.exit(str(e))

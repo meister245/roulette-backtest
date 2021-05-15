@@ -1,3 +1,4 @@
+import math
 from typing import List
 
 import cachetools.func
@@ -7,7 +8,7 @@ RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
 
 
-class RouletteController(object):
+class Roulette:
     number_mapping = {
         RED: (1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36),
         BLACK: (2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35),
@@ -66,6 +67,20 @@ class RouletteController(object):
             cls.validate_bet_type(x)
 
         return tuple(reversed([x for x in patterns if len(x) != 0]))
+
+    @classmethod
+    def analyze_last_n_numbers(cls, numbers, n=100):
+        if len(numbers) < n:
+            raise ValueError()
+
+        return {
+            RED: math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[RED]]) / n * 100),
+            BLACK: math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[BLACK]]) / n * 100),
+            EVEN: math.floor(len([_ for _ in numbers[-n:] if _ % 2 == 0]) / n * 100),
+            ODD: math.floor(len([_ for _ in numbers[-n:] if _ % 2 == 1]) / n * 100),
+            LOW: math.floor(len([_ for _ in numbers[-n:] if 0 < _ <= 18]) / n * 100),
+            HIGH: math.floor(len([_ for _ in numbers[-n:] if _ > 18]) / n * 100)
+        }
 
     @classmethod
     @cachetools.func.lfu_cache()
@@ -136,7 +151,7 @@ class RouletteController(object):
         if bet_type_name == 'any':
             return bet_type_name
 
-        elif bet_type_name not in cls.get_bet_types():
+        if bet_type_name not in cls.get_bet_types():
             raise ValueError(f'invalid model type - {bet_type_name}')
 
         return bet_type_name

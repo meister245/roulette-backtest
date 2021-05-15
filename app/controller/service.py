@@ -1,19 +1,25 @@
-import re
+import itertools
 import os
 import os.path
 import random
-import itertools
+import re
 
-from ..controller.bet import BetController
-from ..controller.display import DisplayController
-from ..controller.roulette import RouletteController
+from .. import __version__
+from ..roulette import Roulette
+from . import BetController, DisplayController
 
 
-class ServiceController(object):
+class ServiceController:
+    roulette = Roulette()
     display_ctrl = DisplayController()
-    roulette_ctrl = RouletteController()
+
+    @classmethod
+    def print_version_info(cls):
+        print(f'roulette-backtest - {__version__}\n')
 
     def run_simulation(self, bet_configs, backtest_path, **kwargs) -> None:
+        self.print_version_info()
+
         mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spins', 50)
 
         if mode == 'rng':
@@ -28,6 +34,8 @@ class ServiceController(object):
             self.display_ctrl.print_result_summary_backtest(results)
 
     def run_bruteforce(self, backtest_path, **kwargs):
+        self.print_version_info()
+
         spins = kwargs.pop('spins', 50)
 
         data = self.get_backtest_numbers(backtest_path, spins)
@@ -68,7 +76,8 @@ class ServiceController(object):
         pl, bl = kwargs['patterns_list'], kwargs['bets_list']
         strategy, win_limit, lose_limit = kwargs['strategy'], kwargs['win_limit'], kwargs['lose_limit']
 
-        print(f'generating bet configurations - strategy: {strategy} - min profit: {kwargs["min_profit"]}')
+        print(
+            f'generating bet configurations - strategy: {strategy} - min profit: {kwargs["min_profit"]}')
 
         for b in self.generate_bet_types_combinations(bl, repl=False):
             for p in self.generate_bet_types_combinations(pl, repl=True):
@@ -78,8 +87,9 @@ class ServiceController(object):
 
                 print(f'processing combination {counter}\r', end='')
 
-                for filename, numbers in data.items():
-                    s_results = self.__simulation_single(config, numbers, **kwargs)
+                for _, numbers in data.items():
+                    s_results = self.__simulation_single(
+                        config, numbers, **kwargs)
                     profit = s_results[-1]['balance'] - s_results[0]['balance']
                     profits.append(profit if profit > 0 else 0)
 
@@ -111,14 +121,14 @@ class ServiceController(object):
         if isinstance(bet_types, str) and len(bet_types) > 0:
             bet_types = set(bet_types.split(','))
         else:
-            bet_types = cls.roulette_ctrl.get_bet_types()
+            bet_types = cls.roulette.get_bet_types()
 
         for l in range(1, len(bet_types) + 1):
             for combo in f(bet_types, l):
                 yield ':'.join(combo)
 
     @staticmethod
-    def get_backtest_numbers(dir_path, spins):
+    def get_backtest_numbers(dir_path, spins=0):
         backtest_numbers = {}
 
         for filename in os.listdir(dir_path):
@@ -129,7 +139,8 @@ class ServiceController(object):
 
                 for row in f.read().split('\n'):
                     if not re.search(r'^([0-9]{1,2}(?:,)?)+$', row):
-                        raise ValueError(f'invalid data format in file - {filename}')
+                        raise ValueError(
+                            f'invalid data format in file - {filename}')
 
                     numbers.extend([int(x) for x in row.split(',')])
 
