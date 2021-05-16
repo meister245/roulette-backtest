@@ -4,7 +4,6 @@ import os.path
 import random
 import re
 
-from .. import __version__
 from ..roulette import Roulette
 from . import BetController, DisplayController
 
@@ -13,65 +12,56 @@ class ServiceController:
     roulette = Roulette()
     display_ctrl = DisplayController()
 
-    @classmethod
-    def print_version_info(cls):
-        print(f'roulette-backtest - {__version__}\n')
-
     def run_simulation(self, bet_configs, backtest_path, **kwargs) -> None:
-        self.print_version_info()
-
         mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spins', 50)
 
         if mode == 'rng':
-            data = self.get_rng_numbers(spins)
-            results = self.__simulation_single(bet_configs, data, **kwargs)
+            numbers = self.get_rng_numbers(spins)
+            results = self.run_simulation_rng(bet_configs, numbers, **kwargs)
+
             self.display_ctrl.print_result_summary_rng(results)
             self.display_ctrl.print_result_details(results)
 
         elif mode == 'backtest':
-            data = self.get_backtest_numbers(backtest_path, spins)
-            results = self.__simulation_backtest(bet_configs, data, **kwargs)
+            backtest_numbers = self.get_backtest_numbers(backtest_path, spins)
+            results = self.run_simulation_backtest(
+                bet_configs, backtest_numbers, **kwargs)
+
             self.display_ctrl.print_result_summary_backtest(results)
 
-    def run_bruteforce(self, backtest_path, **kwargs):
-        self.print_version_info()
+    @classmethod
+    def run_simulation_rng(cls, bet_configs: list, numbers: list, **kwargs):
+        bet_configs = [bet_configs] if isinstance(
+            bet_configs, str) else bet_configs
 
-        spins = kwargs.pop('spins', 50)
+        bet_ctrl = BetController()
 
-        data = self.get_backtest_numbers(backtest_path, spins)
-        result = self.__bruteforce(data, **kwargs)
+        for config in bet_configs:
+            bet_ctrl.process_bet_config(config)
 
-        return sorted(result, key=lambda k: k['avg_profit'], reverse=True)
+        return bet_ctrl.run_simulation(numbers, **kwargs)
 
-    @staticmethod
-    def __simulation_single(bet_configs, numbers, **kwargs):
-        bet_ctrl = BetController(numbers)
+    @classmethod
+    def run_simulation_backtest(cls, bet_configs: list, backtest_numbers: dict, **kwargs):
+        bet_configs = [bet_configs] if isinstance(
+            bet_configs, str) else bet_configs
 
-        if isinstance(bet_configs, str):
-            bet_configs = [bet_configs]
-
-        for c in bet_configs:
-            parsed = bet_ctrl.parse_bet_config(c)
-            bet_ctrl.bet_configs.append(parsed)
-
-        return bet_ctrl.run_simulation(**kwargs)
-
-    @staticmethod
-    def __simulation_backtest(bet_configs, backtest_data, **kwargs):
         results = {}
 
-        for filename, numbers in backtest_data.items():
-            bet_ctrl = BetController(numbers)
+        for filename, numbers in backtest_numbers.items():
+            bet_ctrl = BetController()
 
-            for c in bet_configs:
-                parsed = bet_ctrl.parse_bet_config(c)
-                bet_ctrl.bet_configs.append(parsed)
+            for config in bet_configs:
+                bet_ctrl.process_bet_config(config)
 
-            results[filename] = bet_ctrl.run_simulation(**kwargs)
+            results[filename] = bet_ctrl.run_simulation(numbers, **kwargs)
 
         return results
 
-    def __bruteforce(self, data, **kwargs):
+    def run_simulation_bruteforce(self, backtest_path, **kwargs):
+        spins = kwargs.pop('spins', 50)
+        backtest_numbers = self.get_backtest_numbers(backtest_path, spins)
+
         counter, total_results = 0, []
         pl, bl = kwargs['patterns_list'], kwargs['bets_list']
         strategy, win_limit, lose_limit = kwargs['strategy'], kwargs['win_limit'], kwargs['lose_limit']
@@ -79,17 +69,20 @@ class ServiceController:
         print(
             f'generating bet configurations - strategy: {strategy} - min profit: {kwargs["min_profit"]}')
 
-        for b in self.generate_bet_types_combinations(bl, repl=False):
-            for p in self.generate_bet_types_combinations(pl, repl=True):
+        for b in self.generate_bet_types_combinations(bl, with_replacement=False):
+            for p in self.generate_bet_types_combinations(pl, with_replacement=True):
                 counter += 1
                 profits = []
                 config = f'{strategy},{p},1,{b},{lose_limit},{win_limit}'
 
                 print(f'processing combination {counter}\r', end='')
 
-                for _, numbers in data.items():
-                    s_results = self.__simulation_single(
-                        config, numbers, **kwargs)
+                for _, numbers in backtest_numbers.items():
+                    bet_ctrl = BetController()
+
+                    bet_ctrl.process_bet_config(config)
+                    s_results = bet_ctrl.run_simulation(numbers, **kwargs)
+
                     profit = s_results[-1]['balance'] - s_results[0]['balance']
                     profits.append(profit if profit > 0 else 0)
 
@@ -115,16 +108,17 @@ class ServiceController:
         return tuple([random.randint(0, 36) for x in range(spins)])
 
     @classmethod
-    def generate_bet_types_combinations(cls, bet_types, repl=False):
-        f = itertools.combinations_with_replacement if repl else itertools.combinations
+    def generate_bet_types_combinations(cls, bet_types, with_replacement=False):
+        func = itertools.combinations_with_replacement if with_replacement \
+            else itertools.combinations
 
         if isinstance(bet_types, str) and len(bet_types) > 0:
             bet_types = set(bet_types.split(','))
         else:
             bet_types = cls.roulette.get_bet_types()
 
-        for l in range(1, len(bet_types) + 1):
-            for combo in f(bet_types, l):
+        for i in range(1, len(bet_types) + 1):
+            for combo in func(bet_types, i):
                 yield ':'.join(combo)
 
     @staticmethod

@@ -5,11 +5,10 @@ from ..roulette import Roulette
 class BetController:
     roulette = Roulette()
 
-    def __init__(self, numbers):
+    def __init__(self):
         self.bets = []
         self.results = []
         self.bet_configs = []
-        self.numbers = numbers
 
     def get_bets_total_size(self):
         total_size = 0
@@ -19,22 +18,20 @@ class BetController:
 
         return total_size
 
-    def run_simulation(self, **kwargs):
+    def run_simulation(self, numbers, **kwargs):
         balance = kwargs.pop('balance', 1000.0)
 
-        for spin_count in range(len(self.numbers)):
+        for idx, number in enumerate(numbers):
             bet_results = []
-            number = self.numbers[spin_count - 1]
-            numbers = [x['number'] for x in self.results]
+            current_numbers = [x['number'] for x in self.results]
 
-            self.set_bets(numbers)
+            self.set_bets(current_numbers)
 
             if self.get_bets_total_size() > balance:
                 break
 
             for bet in self.bets:
-                balance, result = bet.run_bet(
-                    number, spin_count, balance, **kwargs)
+                balance, result = bet.run_bet(number, idx, balance, **kwargs)
 
                 if len(result) != 0:
                     bet_results.append(result)
@@ -63,8 +60,7 @@ class BetController:
             elements[7], int(elements[8]), int(elements[9])
         )
 
-    @classmethod
-    def parse_bet_config(cls, config: str) -> dict:
+    def process_bet_config(self, config: str) -> dict:
         elements = [x for x in config.split(',') if len(x) != 0]
 
         if len(elements) < 5:
@@ -75,17 +71,17 @@ class BetController:
 
         config = {
             'strategy': elements[0],
-            'pattern': cls.roulette.get_bet_pattern(elements[1]),
+            'pattern': self.roulette.get_bet_pattern(elements[1]),
             'size': elements[2],
-            'types': [cls.roulette.validate_bet_type(x) for x in elements[3].split(':')],
+            'types': [self.roulette.validate_bet_type(x) for x in elements[3].split(':')],
             'limit_lose': elements[4] if len(elements) >= 4 else 0,
             'limit_win': elements[5] if len(elements) >= 5 else 0
         }
 
         if len(elements) >= 9:
-            config['distribution'] = cls.parse_bet_distribution(elements)
+            config['distribution'] = self.parse_bet_distribution(elements)
 
-        return config
+        self.bet_configs.append(config)
 
     def set_bets(self, numbers):
         for config in self.bet_configs:

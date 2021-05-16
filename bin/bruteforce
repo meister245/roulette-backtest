@@ -37,8 +37,8 @@ if __name__ == '__main__':
     service = ServiceController()
 
     try:
-        params = parse_args()
-        result = service.run_bruteforce(BACKTEST_DIR, **vars(params))
+        args = parse_args()
+        service.run_simulation_bruteforce(BACKTEST_DIR, **vars(args))
 
     except KeyboardInterrupt:
         sys.exit('process terminated by user')

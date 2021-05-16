@@ -6,6 +6,8 @@ import cachetools.func
 COLUMN, DOZEN = 'column', 'dozen'
 RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
+DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD = 'dozen_first', 'dozen_second', 'dozen_third'
+COLUMN_TOP, COLUMN_CENTER, COLUMN_BOTTOM = 'column_top', 'column_center', 'column_bottom'
 
 
 class Roulette:
@@ -18,6 +20,14 @@ class Roulette:
 
         RED: (1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36),
         BLACK: (2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35),
+
+        DOZEN_FIRST: set(n for n in range(37) if 0 < n <= 12),
+        DOZEN_SECOND: set(n for n in range(37) if 12 < n <= 24),
+        DOZEN_THIRD: set(n for n in range(37) if 24 < n <= 36),
+
+        COLUMN_TOP: set(n for n in range(37) if n > 0 and n % 3 == 0),
+        COLUMN_CENTER: set(n for n in range(37) if n > 0 and n % 3 == 2),
+        COLUMN_BOTTOM: set(n for n in range(37) if n > 0 and n % 3 == 1),
 
         FOUR: (0, 1, 2, 3),
 
@@ -101,13 +111,22 @@ class Roulette:
         if len(numbers) < n:
             return None
 
+        def __calc_percentage(bet_type):
+            return math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[bet_type]]) / n * 100)
+
         return {
-            RED: math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[RED]]) / n * 100),
-            BLACK: math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[BLACK]]) / n * 100),
-            EVEN: math.floor(len([_ for _ in numbers[-n:] if _ % 2 == 0]) / n * 100),
-            ODD: math.floor(len([_ for _ in numbers[-n:] if _ % 2 == 1]) / n * 100),
-            LOW: math.floor(len([_ for _ in numbers[-n:] if 0 < _ <= 18]) / n * 100),
-            HIGH: math.floor(len([_ for _ in numbers[-n:] if _ > 18]) / n * 100)
+            RED: __calc_percentage(RED),
+            BLACK: __calc_percentage(BLACK),
+            EVEN: __calc_percentage(EVEN),
+            ODD: __calc_percentage(ODD),
+            LOW: __calc_percentage(LOW),
+            HIGH: __calc_percentage(HIGH),
+            DOZEN_FIRST: __calc_percentage(DOZEN_FIRST),
+            DOZEN_SECOND: __calc_percentage(DOZEN_SECOND),
+            DOZEN_THIRD: __calc_percentage(DOZEN_THIRD),
+            COLUMN_TOP: __calc_percentage(COLUMN_TOP),
+            COLUMN_CENTER: __calc_percentage(COLUMN_CENTER),
+            COLUMN_BOTTOM: __calc_percentage(COLUMN_BOTTOM),
         }
 
     @classmethod
@@ -125,9 +144,9 @@ class Roulette:
         bet_types.extend(
             [f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}' for x in cls.number_mapping[LINE]])
         bet_types.extend(
-            [f'{COLUMN}_bottom', f'{COLUMN}_center', f'{COLUMN}_top'])
+            [COLUMN_BOTTOM, COLUMN_CENTER, COLUMN_TOP])
         bet_types.extend(
-            [f'{DOZEN}_first', f'{DOZEN}_second', f'{DOZEN}_third'])
+            [DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD])
 
         return bet_types
 
@@ -144,7 +163,8 @@ class Roulette:
             win_types.append(FOUR)
 
         elif number != 0:
-            win_types.append(RED if number in cls.number_mapping[RED] else BLACK)
+            win_types.append(
+                RED if number in cls.number_mapping[RED] else BLACK)
             win_types.append(EVEN if number % 2 == 0 else ODD)
             win_types.append(LOW if 1 <= number <= 18 else HIGH)
 
