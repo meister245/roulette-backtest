@@ -10,6 +10,12 @@ LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street'
 
 class Roulette:
     number_mapping = {
+        ODD: set(n for n in range(37) if n % 2 == 1 and n != 0),
+        EVEN: set(n for n in range(37) if n % 2 == 0 and n != 0),
+
+        LOW: set(n for n in range(37) if 0 < n <= 18),
+        HIGH: set(n for n in range(37) if 18 < n <= 36),
+
         RED: (1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36),
         BLACK: (2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35),
 
@@ -43,9 +49,10 @@ class Roulette:
 
     @classmethod
     def is_pattern_match(cls, pattern, numbers):
-        p_subset = []
         win_types = cls.get_win_types_all()
         last_n_numbers = numbers[-len(pattern):]
+
+        p_subset = []
 
         for idx, num in enumerate(last_n_numbers):
             t = cls.validate_bet_type(pattern[idx])
@@ -53,6 +60,27 @@ class Roulette:
 
             if tuple(p_subset) == pattern:
                 return True
+
+        return False
+
+    @classmethod
+    def is_distribution_match(cls, bet_type, action, percentage, numbers, n=100):
+        if bet_type not in cls.number_mapping:
+            return False
+
+        result = cls.analyze_last_n_numbers(numbers, n=n)
+
+        if result is None:
+            return False
+
+        if action in ['equal', 'higher_equal', 'lower_equal'] and result[bet_type] == percentage:
+            return True
+
+        if action == ['lower', 'lower_equal'] and result[bet_type] < percentage:
+            return True
+
+        if action == ['higher', 'higher_equal'] and result[bet_type] > percentage:
+            return True
 
         return False
 
@@ -71,7 +99,7 @@ class Roulette:
     @classmethod
     def analyze_last_n_numbers(cls, numbers, n=100):
         if len(numbers) < n:
-            raise ValueError()
+            return None
 
         return {
             RED: math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[RED]]) / n * 100),
@@ -86,13 +114,20 @@ class Roulette:
     @cachetools.func.lfu_cache()
     def get_bet_types(cls) -> List[str]:
         bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, FOUR]
-        bet_types.extend([f'{STRAIGHT}_{x}' for x in range(37)])
-        bet_types.extend([f'{SPLIT}_{x[0]}_{x[1]}' for x in cls.number_mapping[SPLIT]])
-        bet_types.extend([f'{STREET}_{x[0]}_{x[1]}_{x[2]}' for x in cls.number_mapping[STREET]])
-        bet_types.extend([f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}' for x in cls.number_mapping[CORNER]])
-        bet_types.extend([f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}' for x in cls.number_mapping[LINE]])
-        bet_types.extend([f'{COLUMN}_bottom', f'{COLUMN}_center', f'{COLUMN}_top'])
-        bet_types.extend([f'{DOZEN}_first', f'{DOZEN}_second', f'{DOZEN}_third'])
+        bet_types.extend(
+            [f'{STRAIGHT}_{x}' for x in range(37)])
+        bet_types.extend(
+            [f'{SPLIT}_{x[0]}_{x[1]}' for x in cls.number_mapping[SPLIT]])
+        bet_types.extend(
+            [f'{STREET}_{x[0]}_{x[1]}_{x[2]}' for x in cls.number_mapping[STREET]])
+        bet_types.extend(
+            [f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}' for x in cls.number_mapping[CORNER]])
+        bet_types.extend(
+            [f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}' for x in cls.number_mapping[LINE]])
+        bet_types.extend(
+            [f'{COLUMN}_bottom', f'{COLUMN}_center', f'{COLUMN}_top'])
+        bet_types.extend(
+            [f'{DOZEN}_first', f'{DOZEN}_second', f'{DOZEN}_third'])
 
         return bet_types
 
@@ -142,7 +177,8 @@ class Roulette:
 
             for x in cls.number_mapping[LINE]:
                 if number in x:
-                    win_types.append(f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}')
+                    win_types.append(
+                        f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}')
 
         return win_types
 

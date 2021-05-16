@@ -45,6 +45,25 @@ class BetController:
         return tuple(self.results)
 
     @classmethod
+    def parse_bet_distribution(cls, elements):
+
+        if elements[7] not in ['equal', 'lower_equal', 'higher_equal']:
+            raise ValueError(f'invalid distribution action - {elements[7]}')
+
+        if not elements[8].isdigit() or not 0 <= int(elements[8]) <= 100:
+            raise ValueError(
+                f'invalid distribution percentage - {elements[8]}')
+
+        if not elements[9].isdigit():
+            raise ValueError(
+                f'invalid distribution sample_size - {elements[9]}')
+
+        return (
+            cls.roulette.validate_bet_type(elements[6]),
+            elements[7], int(elements[8]), int(elements[9])
+        )
+
+    @classmethod
     def parse_bet_config(cls, config: str) -> dict:
         elements = [x for x in config.split(',') if len(x) != 0]
 
@@ -63,6 +82,9 @@ class BetController:
             'limit_win': elements[5] if len(elements) >= 5 else 0
         }
 
+        if len(elements) >= 9:
+            config['distribution'] = cls.parse_bet_distribution(elements)
+
         return config
 
     def set_bets(self, numbers):
@@ -70,6 +92,25 @@ class BetController:
             name = config['strategy']
             config['size'] = config['size']
 
-            if self.roulette.is_pattern_match(config['pattern'], numbers):
+            matched = None
+
+            if 'pattern' in config:
+                matched = self.roulette.is_pattern_match(
+                    config['pattern'], numbers)
+
+                if not matched:
+                    continue
+
+            if 'distribution' in config:
+                bet_type, action, percentage, n = config['distribution']
+
+                matched = self.roulette.is_distribution_match(
+                    bet_type, action, percentage, numbers, n=n
+                )
+
+                if not matched:
+                    continue
+
+            if matched:
                 bet = get_bet(name, **config)
                 self.bets.append(bet)
