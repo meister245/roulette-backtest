@@ -3,9 +3,8 @@ from typing import List
 
 import cachetools.func
 
-ANY = 'any'
 COLUMN, DOZEN = 'column', 'dozen'
-RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
+ANY, RED, BLACK, EVEN, ODD, LOW, HIGH = 'any', 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
 DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD = 'dozen_first', 'dozen_second', 'dozen_third'
 COLUMN_TOP, COLUMN_CENTER, COLUMN_BOTTOM = 'column_top', 'column_center', 'column_bottom'
@@ -34,25 +33,39 @@ class Roulette:
 
         FOUR: (0, 1, 2, 3),
 
-        STREET: ((1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12), (13, 14, 15), (16, 17, 18), (19, 20, 21),
-                 (22, 23, 24), (25, 26, 27), (28, 29, 30), (31, 32, 33), (34, 35, 36)),
+        STREET: (
+            (1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12), (13, 14, 15),
+            (16, 17, 18), (19, 20, 21), (22, 23, 24), (25, 26, 27), (28, 29, 30),
+            (31, 32, 33), (34, 35, 36)
+        ),
 
-        LINE: ((1, 2, 3, 4, 5, 6), (4, 5, 6, 7, 8, 9), (7, 8, 9, 10, 11, 12), (10, 11, 12, 13, 14, 15),
-               (13, 14, 15, 16, 17, 18), (16, 17, 18, 19, 20, 21), (19, 20, 21, 22, 23, 24), (22, 23, 24, 25, 26, 27),
-               (25, 26, 27, 28, 29, 30), (28, 29, 30, 31, 32, 33), (31, 32, 33, 34, 35, 36)),
+        LINE: (
+            (1, 2, 3, 4, 5, 6), (4, 5, 6, 7, 8, 9), (7, 8, 9, 10, 11, 12),
+            (10, 11, 12, 13, 14, 15), (13, 14, 15, 16, 17, 18),
+            (16, 17, 18, 19, 20, 21), (19, 20, 21, 22, 23, 24),
+            (22, 23, 24, 25, 26, 27), (25, 26, 27, 28, 29, 30),
+            (28, 29, 30, 31, 32, 33), (31, 32, 33, 34, 35, 36)
+        ),
 
-        CORNER: ((1, 2, 4, 5), (2, 3, 5, 6), (4, 5, 7, 8), (5, 6, 8, 9), (7, 8, 10, 11), (8, 9, 11, 12),
-                 (10, 11, 13, 14), (11, 12, 14, 15), (13, 14, 16, 17), (14, 15, 17, 18), (16, 17, 19, 20),
-                 (17, 18, 20, 21), (19, 20, 22, 23), (20, 21, 23, 24), (22, 23, 25, 26), (23, 24, 26, 27),
-                 (25, 26, 28, 29), (26, 27, 29, 30), (28, 29, 31, 32), (29, 30, 32, 33), (31, 32, 34, 35),
-                 (32, 33, 35, 36)),
+        CORNER: (
+            (1, 2, 4, 5), (2, 3, 5, 6), (4, 5, 7, 8), (5, 6, 8, 9), (7, 8, 10, 11),
+            (8, 9, 11, 12), (10, 11, 13, 14), (11, 12, 14, 15), (13, 14, 16, 17),
+            (14, 15, 17, 18), (16, 17, 19, 20), (17, 18, 20, 21), (19, 20, 22, 23),
+            (20, 21, 23, 24), (22, 23, 25, 26), (23, 24, 26, 27), (25, 26, 28, 29),
+            (26, 27, 29, 30), (28, 29, 31, 32), (29, 30, 32, 33), (31, 32, 34, 35),
+            (32, 33, 35, 36)
+        ),
 
-        SPLIT: ((1, 2), (2, 3), (4, 5), (5, 6), (7, 8), (8, 9), (10, 11), (11, 12), (13, 14), (14, 15), (16, 17),
-                (17, 18), (19, 20), (20, 21), (22, 23), (23, 24), (25, 26), (26, 27), (28, 29), (29, 30), (31, 32),
-                (32, 33), (34, 35), (35, 36), (1, 4), (2, 5), (3, 6), (4, 7), (5, 8), (6, 9), (7, 10), (8, 11),
-                (9, 12), (10, 13), (11, 14), (12, 15), (13, 16), (14, 17), (15, 18), (16, 19), (17, 20), (18, 21),
-                (19, 22), (20, 23), (21, 24), (22, 25), (23, 26), (24, 27), (25, 28), (26, 29), (27, 30), (28, 31),
-                (29, 32), (30, 33), (31, 34), (32, 35), (33, 36))
+        SPLIT: (
+            (1, 2), (2, 3), (4, 5), (5, 6), (7, 8), (8, 9), (10, 11), (11, 12),
+            (13, 14), (14, 15), (16, 17), (17, 18), (19, 20), (20, 21), (22, 23),
+            (23, 24), (25, 26), (26, 27), (28, 29), (29, 30), (31, 32), (32, 33),
+            (34, 35), (35, 36), (1, 4), (2, 5), (3, 6), (4, 7), (5, 8), (6, 9),
+            (7, 10), (8, 11), (9, 12), (10, 13), (11, 14), (12, 15), (13, 16),
+            (14, 17), (15, 18), (16, 19), (17, 20), (18, 21), (19, 22), (20, 23),
+            (21, 24), (22, 25), (23, 26), (24, 27), (25, 28), (26, 29), (27, 30),
+            (28, 31), (29, 32), (30, 33), (31, 34), (32, 35), (33, 36)
+        )
     }
 
     payout_mapping = {
@@ -78,9 +91,6 @@ class Roulette:
 
     @classmethod
     def is_distribution_match(cls, bet_type, action, percentage, numbers, n=100):
-        if bet_type not in cls.number_mapping:
-            return False
-
         result = cls.analyze_last_n_numbers(bet_type, numbers, n=n)
 
         if result is None:
@@ -111,33 +121,47 @@ class Roulette:
 
     @classmethod
     def analyze_last_n_numbers(cls, bet_type, numbers, n=100):
-        if bet_type not in cls.number_mapping or len(numbers) < n:
+        bet_types = cls.get_bet_types()
+
+        if bet_type not in bet_types:
+            raise ValueError(f'invalid bet type - {bet_type}')
+
+        if len(numbers) < n:
             return None
 
-        occurrence = len([_ for _ in numbers[-n:] if _ in cls.number_mapping[bet_type]])
+        occurrence = len(
+            [_ for _ in numbers[-n:] if _ in bet_types[bet_type]])
 
         return math.floor(occurrence / n * 100)
 
     @classmethod
     @cachetools.func.lfu_cache()
     def get_bet_types(cls) -> List[str]:
-        bet_types = [ANY, RED, BLACK, EVEN, ODD, LOW, HIGH, FOUR]
-        bet_types.extend(
-            [f'{STRAIGHT}_{x}' for x in range(37)])
-        bet_types.extend(
-            [f'{SPLIT}_{x[0]}_{x[1]}' for x in cls.number_mapping[SPLIT]])
-        bet_types.extend(
-            [f'{STREET}_{x[0]}_{x[1]}_{x[2]}' for x in cls.number_mapping[STREET]])
-        bet_types.extend(
-            [f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}' for x in cls.number_mapping[CORNER]])
-        bet_types.extend(
-            [f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}' for x in cls.number_mapping[LINE]])
-        bet_types.extend(
-            [COLUMN_BOTTOM, COLUMN_CENTER, COLUMN_TOP])
-        bet_types.extend(
-            [DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD])
+        bet_types = {
+            ANY: cls.number_mapping[ANY],
+            RED: cls.number_mapping[RED],
+            BLACK: cls.number_mapping[BLACK],
+            EVEN: cls.number_mapping[EVEN],
+            ODD: cls.number_mapping[ODD],
+            LOW: cls.number_mapping[LOW],
+            HIGH: cls.number_mapping[HIGH],
+            FOUR: cls.number_mapping[FOUR],
+            DOZEN_FIRST: cls.number_mapping[DOZEN_FIRST],
+            DOZEN_SECOND: cls.number_mapping[DOZEN_SECOND],
+            DOZEN_THIRD: cls.number_mapping[DOZEN_THIRD],
+            COLUMN_TOP: cls.number_mapping[COLUMN_TOP],
+            COLUMN_CENTER: cls.number_mapping[COLUMN_CENTER],
+            COLUMN_BOTTOM: cls.number_mapping[COLUMN_BOTTOM],
+        }
 
-        return bet_types
+        return {
+            **bet_types,
+            **{f'{STRAIGHT}_{x}': (x, ) for x in range(37)},
+            **{f'{SPLIT}_{x[0]}_{x[1]}': x for x in cls.number_mapping[SPLIT]},
+            **{f'{STREET}_{x[0]}_{x[1]}_{x[2]}': x for x in cls.number_mapping[STREET]},
+            **{f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}': x for x in cls.number_mapping[CORNER]},
+            **{f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}': x for x in cls.number_mapping[LINE]}
+        }
 
     @classmethod
     @cachetools.func.lfu_cache()
@@ -146,48 +170,11 @@ class Roulette:
 
     @classmethod
     def get_win_types(cls, number: int) -> List[str]:
-        win_types = [f'{STRAIGHT}_{number}', ANY]
+        win_types, bet_types = [], cls.get_bet_types()
 
-        if number == 0:
-            win_types.append(FOUR)
-
-        elif number != 0:
-            win_types.append(
-                RED if number in cls.number_mapping[RED] else BLACK)
-            win_types.append(EVEN if number % 2 == 0 else ODD)
-            win_types.append(LOW if 1 <= number <= 18 else HIGH)
-
-            win_types.append(
-                f'{COLUMN}_bottom' if number % 3 == 1 else
-                f'{COLUMN}_center' if number % 2 == 2 else
-                f'{COLUMN}_top'
-            )
-
-            win_types.append(
-                f'{DOZEN}_first' if 1 <= number <= 12 else
-                f'{DOZEN}_second' if 13 <= number <= 24 else
-                f'{DOZEN}_third'
-            )
-
-            if number in cls.number_mapping[FOUR]:
-                win_types.append(FOUR)
-
-            for x in cls.number_mapping[SPLIT]:
-                if number in x:
-                    win_types.append(f'{SPLIT}_{x[0]}_{x[1]}')
-
-            for x in cls.number_mapping[STREET]:
-                if number in x:
-                    win_types.append(f'{STREET}_{x[0]}_{x[1]}_{x[2]}')
-
-            for x in cls.number_mapping[CORNER]:
-                if number in x:
-                    win_types.append(f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}')
-
-            for x in cls.number_mapping[LINE]:
-                if number in x:
-                    win_types.append(
-                        f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}')
+        for bet_name, bet_numbers in bet_types.items():
+            if number in bet_numbers:
+                win_types.append(bet_name)
 
         return win_types
 
