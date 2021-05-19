@@ -3,6 +3,7 @@ from typing import List
 
 import cachetools.func
 
+ANY = 'any'
 COLUMN, DOZEN = 'column', 'dozen'
 RED, BLACK, EVEN, ODD, LOW, HIGH = 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
@@ -12,6 +13,8 @@ COLUMN_TOP, COLUMN_CENTER, COLUMN_BOTTOM = 'column_top', 'column_center', 'colum
 
 class Roulette:
     number_mapping = {
+        ANY: set(n for n in range(37)),
+
         ODD: set(n for n in range(37) if n % 2 == 1 and n != 0),
         EVEN: set(n for n in range(37) if n % 2 == 0 and n != 0),
 
@@ -78,12 +81,12 @@ class Roulette:
         if bet_type not in cls.number_mapping:
             return False
 
-        result = cls.analyze_last_n_numbers(numbers, n=n)
+        result = cls.analyze_last_n_numbers(bet_type, numbers, n=n)
 
         if result is None:
             return False
 
-        if action in ['equal', 'higher_equal', 'lower_equal'] and result[bet_type] == percentage:
+        if action in ['equal', 'higher_equal', 'lower_equal'] and result == percentage:
             return True
 
         if action == ['lower', 'lower_equal'] and result[bet_type] < percentage:
@@ -107,32 +110,18 @@ class Roulette:
         return tuple(reversed([x for x in patterns if len(x) != 0]))
 
     @classmethod
-    def analyze_last_n_numbers(cls, numbers, n=100):
-        if len(numbers) < n:
+    def analyze_last_n_numbers(cls, bet_type, numbers, n=100):
+        if bet_type not in cls.number_mapping or len(numbers) < n:
             return None
 
-        def __calc_percentage(bet_type):
-            return math.floor(len([_ for _ in numbers[-n:] if _ in cls.number_mapping[bet_type]]) / n * 100)
+        occurrence = len([_ for _ in numbers[-n:] if _ in cls.number_mapping[bet_type]])
 
-        return {
-            RED: __calc_percentage(RED),
-            BLACK: __calc_percentage(BLACK),
-            EVEN: __calc_percentage(EVEN),
-            ODD: __calc_percentage(ODD),
-            LOW: __calc_percentage(LOW),
-            HIGH: __calc_percentage(HIGH),
-            DOZEN_FIRST: __calc_percentage(DOZEN_FIRST),
-            DOZEN_SECOND: __calc_percentage(DOZEN_SECOND),
-            DOZEN_THIRD: __calc_percentage(DOZEN_THIRD),
-            COLUMN_TOP: __calc_percentage(COLUMN_TOP),
-            COLUMN_CENTER: __calc_percentage(COLUMN_CENTER),
-            COLUMN_BOTTOM: __calc_percentage(COLUMN_BOTTOM),
-        }
+        return math.floor(occurrence / n * 100)
 
     @classmethod
     @cachetools.func.lfu_cache()
     def get_bet_types(cls) -> List[str]:
-        bet_types = [RED, BLACK, EVEN, ODD, LOW, HIGH, FOUR]
+        bet_types = [ANY, RED, BLACK, EVEN, ODD, LOW, HIGH, FOUR]
         bet_types.extend(
             [f'{STRAIGHT}_{x}' for x in range(37)])
         bet_types.extend(
@@ -157,7 +146,7 @@ class Roulette:
 
     @classmethod
     def get_win_types(cls, number: int) -> List[str]:
-        win_types = [f'{STRAIGHT}_{number}', 'any']
+        win_types = [f'{STRAIGHT}_{number}', ANY]
 
         if number == 0:
             win_types.append(FOUR)

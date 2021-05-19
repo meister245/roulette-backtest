@@ -1,3 +1,4 @@
+import collections
 import itertools
 import os
 import os.path
@@ -143,4 +144,4 @@ class ServiceController:
 
             backtest_numbers[filename] = numbers[:spins] if spins != 0 else numbers
 
-        return backtest_numbers
+        return collections.OrderedDict(sorted(backtest_numbers.items()))
