@@ -24,7 +24,7 @@ class DisplayController:
         return t_data
 
     @classmethod
-    def get_result_summary_rng(cls, results):
+    def get_result_summary(cls, results):
         balance_start = results[0]['balance']
         balance_close = results[-1]['balance']
         win_ratio = cls.get_win_ratio(results)
@@ -63,8 +63,8 @@ class DisplayController:
         print(t + '\n')
 
     @classmethod
-    def print_result_summary_rng(cls, bet_objects):
-        summary = cls.get_result_summary_rng(bet_objects)
+    def print_result_summary(cls, bet_objects):
+        summary = cls.get_result_summary(bet_objects)
 
         t_headers = [
             'Total Spins', 'Balance (S/C)', 'Total Profit', 'Profit Ratio (%)',
@@ -98,8 +98,7 @@ class DisplayController:
         if len(results_total) == 0:
             return 0
 
-        else:
-            return win_results_count / len(results_total) * 100
+        return win_results_count / len(results_total) * 100
 
     @staticmethod
     def get_longest_streak(results):
