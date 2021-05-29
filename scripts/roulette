@@ -19,6 +19,10 @@ def parse_args():
                         metavar='BET', help='betting configuration')
     parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
                         metavar='MODE', help='test mode')
+    parser.add_argument('--backtest-file', action='store', type=str, default=False,
+                        metavar='BACKTEST FILE', help='filename for backtest data')
+    parser.add_argument('--backtest-filter', action='store', type=str, default=False,
+                        metavar='BACKTEST FILTER', help='filter processing for backtest files')
     parser.add_argument('-s', '--spins', action='store', type=int, default=50,
                         metavar='NUMBER', help='number of roulette spins played')
     parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
