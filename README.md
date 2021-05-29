@@ -16,6 +16,3 @@ pip install -r ./requirements.txt
 ### Detailed Usage
 
 - ./bin/roulette - [link](docs/Usage-Roulette.md)
-- ./bin/bruteforce - [link](docs/Usage-Bruteforce.md)
-
-
