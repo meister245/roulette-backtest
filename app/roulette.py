@@ -6,8 +6,8 @@ import cachetools.func
 COLUMN, DOZEN = 'column', 'dozen'
 ANY, RED, BLACK, EVEN, ODD, LOW, HIGH = 'any', 'red', 'black', 'even', 'odd', 'low', 'high'
 LINE, CORNER, FOUR, STREET, SPLIT, STRAIGHT = 'line', 'corner', 'four', 'street', 'split', 'straight'
-DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD = 'dozen_first', 'dozen_second', 'dozen_third'
-COLUMN_TOP, COLUMN_CENTER, COLUMN_BOTTOM = 'column_top', 'column_center', 'column_bottom'
+DOZEN_FIRST, DOZEN_SECOND, DOZEN_THIRD = 'dozenFirst', 'dozenSecond', 'dozenThird'
+COLUMN_TOP, COLUMN_MIDDLE, COLUMN_BOTTOM = 'columnTop', 'columnMiddle', 'columnBottom'
 
 
 class Roulette:
@@ -28,7 +28,7 @@ class Roulette:
         DOZEN_THIRD: set(n for n in range(37) if 24 < n <= 36),
 
         COLUMN_TOP: set(n for n in range(37) if n > 0 and n % 3 == 0),
-        COLUMN_CENTER: set(n for n in range(37) if n > 0 and n % 3 == 2),
+        COLUMN_MIDDLE: set(n for n in range(37) if n > 0 and n % 3 == 2),
         COLUMN_BOTTOM: set(n for n in range(37) if n > 0 and n % 3 == 1),
 
         FOUR: (0, 1, 2, 3),
@@ -69,7 +69,9 @@ class Roulette:
     }
 
     payout_mapping = {
-        RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1, DOZEN: 2, COLUMN: 2,
+        RED: 1, BLACK: 1, EVEN: 1, ODD: 1, LOW: 1, HIGH: 1,
+        DOZEN_FIRST: 2, DOZEN_SECOND: 2, DOZEN_THIRD: 2,
+        COLUMN_TOP: 2, COLUMN_MIDDLE: 2, COLUMN_BOTTOM: 2,
         LINE: 5, CORNER: 8, FOUR: 8, STREET: 11, SPLIT: 17, STRAIGHT: 35
     }
 
@@ -84,7 +86,7 @@ class Roulette:
             t = cls.validate_bet_type(pattern[idx])
             p_subset.append(t if t in win_types[num] else None)
 
-            if tuple(p_subset) == pattern:
+            if tuple(p_subset) == tuple(pattern):
                 return True
 
         return False
@@ -96,13 +98,13 @@ class Roulette:
         if result is None:
             return False
 
-        if action in ['equal', 'higher_equal', 'lower_equal'] and result == percentage:
+        if action in ['equal', 'higherEqual', 'lowerEqual'] and result == percentage:
             return True
 
-        if action == ['lower', 'lower_equal'] and result[bet_type] < percentage:
+        if action == ['lower', 'lowerEqual'] and result[bet_type] < percentage:
             return True
 
-        if action == ['higher', 'higher_equal'] and result[bet_type] > percentage:
+        if action == ['higher', 'higherEqual'] and result[bet_type] > percentage:
             return True
 
         return False
@@ -150,17 +152,17 @@ class Roulette:
             DOZEN_SECOND: cls.number_mapping[DOZEN_SECOND],
             DOZEN_THIRD: cls.number_mapping[DOZEN_THIRD],
             COLUMN_TOP: cls.number_mapping[COLUMN_TOP],
-            COLUMN_CENTER: cls.number_mapping[COLUMN_CENTER],
+            COLUMN_MIDDLE: cls.number_mapping[COLUMN_MIDDLE],
             COLUMN_BOTTOM: cls.number_mapping[COLUMN_BOTTOM],
         }
 
         return {
             **bet_types,
-            **{f'{STRAIGHT}_{x}': (x, ) for x in range(37)},
-            **{f'{SPLIT}_{x[0]}_{x[1]}': x for x in cls.number_mapping[SPLIT]},
-            **{f'{STREET}_{x[0]}_{x[1]}_{x[2]}': x for x in cls.number_mapping[STREET]},
-            **{f'{CORNER}_{x[0]}_{x[1]}_{x[2]}_{x[3]}': x for x in cls.number_mapping[CORNER]},
-            **{f'{LINE}_{x[0]}_{x[1]}_{x[2]}_{x[3]}_{x[4]}_{x[5]}': x for x in cls.number_mapping[LINE]}
+            **{f'{STRAIGHT}-{x}': (x, ) for x in range(37)},
+            **{f'{SPLIT}-{x[0]}-{x[1]}': x for x in cls.number_mapping[SPLIT]},
+            **{f'{STREET}-{x[0]}-{x[1]}-{x[2]}': x for x in cls.number_mapping[STREET]},
+            **{f'{CORNER}-{x[0]}-{x[1]}-{x[2]}-{x[3]}': x for x in cls.number_mapping[CORNER]},
+            **{f'{LINE}-{x[0]}-{x[1]}-{x[2]}-{x[3]}-{x[4]}-{x[5]}': x for x in cls.number_mapping[LINE]}
         }
 
     @classmethod

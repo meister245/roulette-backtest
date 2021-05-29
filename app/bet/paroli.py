@@ -1,19 +1,19 @@
-from .common import BetCommon
+from .simple import BetSimple
 
 
-class BetParoli(BetCommon):
+class BetParoli(BetSimple):
     name = 'paroli'
 
-    def __init__(self, **kwargs):
-        BetCommon.__init__(self, **kwargs)
+    def __init__(self, config):
+        BetSimple.__init__(self, config)
 
     def update_bet_size(self, result, **kwargs):
-        table_limit = kwargs.get('table_limit', 150.0)
+        table_limit = kwargs.get('tableLimit', 150.0)
 
-        if result['win'] and self.size_current * len(self.types) + 1 <= table_limit:
-            self.size_current *= len(self.types) + 1
+        if result['win'] and self.size_current * self.config['progressionMultiplier'] <= table_limit:
+            self.size_current *= self.config['progressionMultiplier']
 
-        elif result['win'] and self.size_current * len(self.types) + 1 > table_limit:
+        elif result['win'] and self.size_current * self.config['progressionMultiplier'] > table_limit:
             pass
 
         elif not result['win']:

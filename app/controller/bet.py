@@ -1,4 +1,4 @@
-from ..bet import get_bet, BETS
+from ..bet import get_bet
 from ..roulette import Roulette
 
 
@@ -8,13 +8,16 @@ class BetController:
     def __init__(self):
         self.bets = []
         self.results = []
-        self.bet_configs = []
+        self.configs = []
+
+    def get_bets_active(self):
+        return [bet for bet in self.bets if bet.is_bet_active()]
 
     def get_bets_total_size(self):
         total_size = 0
 
-        for x in self.bets:
-            total_size += x.size_current if x.is_bet_active() else 0
+        for bet in self.bets:
+            total_size += bet.size_current if bet.is_bet_active() else 0
 
         return total_size
 
@@ -41,72 +44,26 @@ class BetController:
 
         return tuple(self.results)
 
-    @classmethod
-    def parse_bet_distribution(cls, elements):
-
-        if elements[7] not in ['equal', 'lower_equal', 'higher_equal']:
-            raise ValueError(f'invalid distribution action - {elements[7]}')
-
-        if not elements[8].isdigit() or not 0 <= int(elements[8]) <= 100:
-            raise ValueError(
-                f'invalid distribution percentage - {elements[8]}')
-
-        if not elements[9].isdigit():
-            raise ValueError(
-                f'invalid distribution sample_size - {elements[9]}')
-
-        return (
-            cls.roulette.validate_bet_type(elements[6]),
-            elements[7], int(elements[8]), int(elements[9])
-        )
-
-    def process_bet_config(self, config: str) -> dict:
-        elements = [x for x in config.split(',') if len(x) != 0]
-
-        if len(elements) < 5:
-            raise ValueError(f'invalid model config - {config}')
-
-        if elements[0] not in [bet_cls.name for bet_cls in BETS]:
-            raise ValueError(f'invalid strategy name - {elements[0]}')
-
-        config = {
-            'strategy': elements[0],
-            'pattern': self.roulette.get_bet_pattern(elements[1]),
-            'size': elements[2],
-            'types': [self.roulette.validate_bet_type(x) for x in elements[3].split(':')],
-            'limit_lose': elements[4] if len(elements) >= 4 else 0,
-            'limit_win': elements[5] if len(elements) >= 5 else 0
-        }
-
-        if len(elements) >= 9:
-            config['distribution'] = self.parse_bet_distribution(elements)
-
-        self.bet_configs.append(config)
-
     def set_bets(self, numbers):
-        for config in self.bet_configs:
-            name = config['strategy']
-            config['size'] = config['size']
+        for config in self.configs:
+            matched = False
 
-            matched = None
-
-            if 'pattern' in config:
+            if 'pattern' in config['trigger']:
                 matched = self.roulette.is_pattern_match(
-                    config['pattern'], numbers)
+                    config['trigger']['pattern'], numbers)
 
                 if not matched:
                     continue
 
-            if 'distribution' in config:
-                bet_type, action, percentage, n = config['distribution']
+            if 'distribution' in config['trigger']:
+                bet_type, sample_size, percentage, action = config['trigger']['distribution']
 
                 matched = self.roulette.is_distribution_match(
-                    bet_type, action, percentage, numbers, n=n
+                    bet_type, action, percentage, numbers, n=sample_size
                 )
 
                 if not matched:
                     continue
 
-            if matched:
-                bet = get_bet(name, **config)
-                self.bets.append(bet)
+            if matched and len(self.get_bets_active()) < config['concurrentBetsLimit'] :
+                self.bets.append(get_bet(config))

@@ -7,19 +7,26 @@ class DisplayController:
         t_data = []
 
         for x in results:
-            bets = [f"{'W' if r['win'] else 'N' if r['win'] is None else 'F'} - {r['size']} - {','.join(r['type'])}"
-                    for r in x['results']]
+            bets = [
+                f"{'W' if r['win'] else 'N' if r['win'] is None else 'F'}"
+                " - "
+                f"{round(r['size'], 2)}"
+                " - "
+                f"{','.join(r['type'])}"
+                for r in x['results']
+            ]
 
             bets = '---' if len(bets) == 0 else '\n'.join(bets)
 
             profit = sum([p['profit'] for p in x['results']])
 
             size = sum([s['size'] for s in x['results']])
-            size = size if size > 0 else '---'
+            size = round(size, 2) if size > 0 else '---'
 
             status = 'W' if profit > 0 else 'L' if profit < 0 else '---'
 
-            t_data.append([x['balance'], bets, size, x['number'], status, profit])
+            t_data.append([x['balance'], bets, size,
+                           x['number'], status, profit])
 
         return t_data
 
@@ -50,13 +57,15 @@ class DisplayController:
             total_profit = data[-1]['balance'] - data[0]['balance']
             win_ratio = round(cls.get_win_ratio(data), 2)
 
-            t_data.append([filename, len(data), total_bets, total_profit, win_ratio])
+            t_data.append([filename, len(data), total_bets,
+                           total_profit, win_ratio])
 
         return t_data
 
     @classmethod
     def print_result_details(cls, bet_results):
-        t_headers = ['Balance', 'Bets', 'Bet Amount', 'Number', 'Status', 'Profit']
+        t_headers = ['Balance', 'Bets', 'Bet Amount',
+                     'Number', 'Status', 'Profit']
         t_data = cls.get_result_details(bet_results)
 
         t = cls.tabulate_data(t_headers, t_data)
@@ -79,7 +88,8 @@ class DisplayController:
 
     @classmethod
     def print_result_summary_backtest(cls, results):
-        t_headers = ['Filename', 'Total Spins', 'Total Bets', 'Total Profit', 'Win Ratio (%)']
+        t_headers = ['Filename', 'Total Spins',
+                     'Total Bets', 'Total Profit', 'Win Ratio (%)']
         t_data = cls.get_result_summary_backtest(results)
 
         t = cls.tabulate_data(t_headers, t_data)

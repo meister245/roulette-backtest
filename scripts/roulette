@@ -6,7 +6,7 @@ from os.path import dirname, realpath, join
 
 SRC_DIR = realpath(join(dirname(__file__), '..'))
 BACKTEST_DIR = realpath(join(dirname(__file__), '..', 'resources', 'backtest'))
-
+STRATEGY_DIR = realpath(join(dirname(__file__), '..', 'resources', 'strategy'))
 
 if __name__ == '__main__':
     sys.path.append(SRC_DIR)
@@ -15,30 +15,28 @@ if __name__ == '__main__':
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('bet', action='extend', nargs='+',
-                        metavar='BET', help='betting configuration')
+    parser.add_argument('-s', action='store', type=str, default='sample',
+                        metavar='STRATEGY', help='filename for betting strategy')
     parser.add_argument('-m', '--mode', choices=('rng', 'backtest'), default='rng',
                         metavar='MODE', help='test mode')
-    parser.add_argument('-s', '--spins', action='store', type=int, default=50,
-                        metavar='NUMBER', help='number of roulette spins played')
-    parser.add_argument('-l', '--table_limit', action='store', type=float, default=150.0,
-                        metavar='NUMBER', help='maximum sum of units the table accepts')
     parser.add_argument('--balance', action='store', type=float, default=100.0,
                         metavar='NUMBER', help='starting balance')
-    parser.add_argument('--backtest-file', action='store', type=str, default=False,
-                        metavar='BACKTEST FILE', help='filename for backtest data')
+    parser.add_argument('--spins', action='store', type=int, default=0,
+                        metavar='NUMBER', help='number of roulette spins played')
+    parser.add_argument('--backtest', action='store', type=str, default=False,
+                        metavar='BACKTEST', help='filename for backtest data')
     parser.add_argument('--backtest-filter', action='store', type=str, default=False,
-                        metavar='BACKTEST FILTER', help='filter processing for backtest files')
+                        metavar='BACKTEST_FILTER', help='filter processing for backtest files')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    service = ServiceController()
+    service = ServiceController(STRATEGY_DIR, BACKTEST_DIR)
 
     try:
         args = parse_args()
-        service.run_simulation(args.bet, BACKTEST_DIR, **vars(args))
+        service.run_simulation(**vars(args))
 
     except KeyboardInterrupt:
         sys.exit('process terminated by user')
