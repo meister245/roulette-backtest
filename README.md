@@ -12,7 +12,3 @@ Clone or download repository and install all dependencies
 ```
 pip install -r ./requirements.txt 
 ```
-
-### Detailed Usage
-
-- ./bin/roulette - [link](docs/Usage-Roulette.md)
