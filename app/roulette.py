@@ -101,10 +101,10 @@ class Roulette:
         if action in ['equal', 'higherEqual', 'lowerEqual'] and result == percentage:
             return True
 
-        if action == ['lower', 'lowerEqual'] and result[bet_type] < percentage:
+        if action in ['lower', 'lowerEqual'] and result < percentage:
             return True
 
-        if action == ['higher', 'higherEqual'] and result[bet_type] > percentage:
+        if action in ['higher', 'higherEqual'] and result > percentage:
             return True
 
         return False
