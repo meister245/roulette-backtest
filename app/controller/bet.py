@@ -10,60 +10,64 @@ class BetController:
         self.results = []
         self.configs = []
 
-    def get_bets_active(self):
-        return [bet for bet in self.bets if bet.is_bet_active()]
-
-    def get_bets_total_size(self):
-        total_size = 0
-
-        for bet in self.bets:
-            total_size += bet.size_current if bet.is_bet_active() else 0
-
-        return total_size
-
     def run_simulation(self, numbers, **kwargs):
         balance = kwargs.pop('balance', 1000.0)
 
         for idx, number in enumerate(numbers):
-            bet_results = []
             current_numbers = [x['number'] for x in self.results]
 
-            self.set_bets(current_numbers)
+            for config in self.configs:
+                active_bets = self.get_bets_active()
+
+                if len(active_bets) >= config['concurrentBetsLimit']:
+                    break
+
+                if self.is_strategy_match(config, current_numbers):
+                    bet_obj = get_bet(config)
+                    self.bets.append(bet_obj)
 
             if self.get_bets_total_size() > balance:
                 break
 
-            for bet in self.bets:
-                balance, result = bet.run_bet(number, idx, balance, **kwargs)
+            bet_results = []
 
-                if len(result) != 0:
-                    bet_results.append(result)
+            for bet_obj in self.get_bets_active():
+                result = bet_obj.run_bet(number, **kwargs)
+
+                result.update({
+                    'spin': idx + 1
+                })
+
+                balance += result['profit']
+                bet_results.append(result)
 
             self.results.append(
                 {'results': bet_results, 'balance': balance, 'number': number})
 
         return tuple(self.results)
 
-    def set_bets(self, numbers):
-        for config in self.configs:
-            matched = False
+    def get_bets_active(self):
+        return [bet for bet in self.bets if bet.is_bet_active()]
 
-            if 'pattern' in config['trigger']:
-                matched = self.roulette.is_pattern_match(
-                    config['trigger']['pattern'], numbers)
+    def get_bets_total_size(self):
+        return sum([bet.size_current for bet in self.get_bets_active()])
 
-                if not matched:
-                    continue
+    def is_strategy_match(self, config, numbers):
+        if 'pattern' in config['trigger']:
+            matched = self.roulette.is_pattern_match(
+                config['trigger']['pattern'], numbers)
 
-            if 'distribution' in config['trigger']:
-                bet_type, sample_size, percentage, action = config['trigger']['distribution']
+            if not matched:
+                return False
 
-                matched = self.roulette.is_distribution_match(
-                    bet_type, action, percentage, numbers, n=sample_size
-                )
+        if 'distribution' in config['trigger']:
+            bet_type, sample_size, percentage, action = config['trigger']['distribution']
 
-                if not matched:
-                    continue
+            matched = self.roulette.is_distribution_match(
+                bet_type, action, percentage, numbers, n=sample_size
+            )
 
-            if matched and len(self.get_bets_active()) < config['concurrentBetsLimit'] :
-                self.bets.append(get_bet(config))
+            if not matched:
+                return False
+
+        return True

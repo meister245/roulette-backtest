@@ -8,7 +8,7 @@ class DisplayController:
 
         for x in results:
             bets = [
-                f"{'W' if r['win'] else 'N' if r['win'] is None else 'F'}"
+                f"{'W' if r['success'] else 'N' if r['success'] is None else 'F'}"
                 " - "
                 f"{round(r['size'], 2)}"
                 " - "
@@ -103,7 +103,7 @@ class DisplayController:
             if len(b['results']) != 0:
                 results_total.extend(b['results'])
 
-        win_results_count = len([k for k in results_total if k['win']])
+        win_results_count = len([k for k in results_total if k['success']])
 
         if len(results_total) == 0:
             return 0

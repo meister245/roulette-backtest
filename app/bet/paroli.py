@@ -10,11 +10,11 @@ class BetParoli(BetSimple):
     def update_bet_size(self, result, **kwargs):
         table_limit = kwargs.get('tableLimit', 150.0)
 
-        if result['win'] and self.size_current * self.config['progressionMultiplier'] <= table_limit:
+        if result['success'] and self.size_current * self.config['progressionMultiplier'] <= table_limit:
             self.size_current *= self.config['progressionMultiplier']
 
-        elif result['win'] and self.size_current * self.config['progressionMultiplier'] > table_limit:
+        elif result['success'] and self.size_current * self.config['progressionMultiplier'] > table_limit:
             pass
 
-        elif not result['win']:
+        elif not result['success']:
             self.size_current = self.size_original

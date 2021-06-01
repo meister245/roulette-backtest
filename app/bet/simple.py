@@ -13,36 +13,35 @@ class BetSimple:
         self.size_current = float(config['chipSize'])
         self.size_original = float(config['chipSize'])
 
-        self.limit_win = int(config.get('stopWinLimit', 0))
-        self.limit_lose = int(config.get('stopLossLimit', 0))
+        self.limits = {
+            'win': int(config.get('stopWinLimit', 0)),
+            'lose': int(config.get('stopLossLimit', 0))
+        }
 
-        self.win_current = 0
-        self.lose_current = 0
+        self.results = {
+            'win': 0,
+            'lose': 0
+        }
 
-    def run_bet(self, number, spin, balance, **kwargs):
-        result = {}
+    def run_bet(self, number, **kwargs):
+        result = self.get_bet_result(number)
 
-        if self.is_bet_active():
-            result = self.get_bet_result(number, spin)
+        if result['success']:
+            self.results['win'] += 1
 
-            if result['win']:
-                self.win_current += 1
+        elif not result['success']:
+            self.results['lose'] += 1
 
-            elif not result['win']:
-                self.lose_current += 1
+        if result['size'] > 0:
+            self.update_bet_size(result, **kwargs)
 
-            if result['size'] > 0:
-                self.update_bet_size(result, **kwargs)
-
-            balance += result['profit']
-
-        return round(balance, 2), result
+        return result
 
     def is_bet_active(self):
-        if self.limit_lose != 0 and self.lose_current == self.limit_lose:
+        if self.limits['lose'] != 0 and self.results['lose'] == self.limits['lose']:
             return False
 
-        if self.limit_win != 0 and self.win_current == self.limit_win:
+        if self.limits['win'] != 0 and self.results['win'] == self.limits['win']:
             return False
 
         return True
@@ -64,15 +63,14 @@ class BetSimple:
 
         return status, round(profit, 2)
 
-    def get_bet_result(self, number: int, spin: int) -> dict:
+    def get_bet_result(self, number: int) -> dict:
         win_loss, profit = self.get_bet_profit(number)
 
         result = {
-            'spin': spin + 1,
-            'size': self.size_current,
+            'size': float(self.size_current),
             'profit': profit,
             'type': self.config['bets'],
-            'win': win_loss
+            'success': win_loss
         }
 
         return result
