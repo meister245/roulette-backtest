@@ -7,6 +7,10 @@ class BetSimple:
     name = 'simple'
     roulette = Roulette()
 
+    STATUS_ACTIVE = 'active'
+    STATUS_INACTIVE = 'inactive'
+    STATUS_SUSPENDED = 'suspended'
+
     def __init__(self, config):
         self.config = config
 
@@ -15,13 +19,16 @@ class BetSimple:
 
         self.limits = {
             'win': int(config.get('stopWinLimit', 0)),
-            'lose': int(config.get('stopLossLimit', 0))
+            'lose': int(config.get('stopLossLimit', 0)),
+            'suspend': int(config.get('stopSuspendLimit', 0))
         }
 
         self.results = {
             'win': 0,
             'lose': 0
         }
+
+        self.status = self.STATUS_ACTIVE
 
     def run_bet(self, number, **kwargs):
         result = self.get_bet_result(number)
@@ -32,19 +39,22 @@ class BetSimple:
         elif not result['success']:
             self.results['lose'] += 1
 
+        self.update_bet_status()
+
         if result['size'] > 0:
             self.update_bet_size(result, **kwargs)
 
         return result
 
-    def is_bet_active(self):
+    def update_bet_status(self):
         if self.limits['lose'] != 0 and self.results['lose'] == self.limits['lose']:
-            return False
+            self.status = self.STATUS_INACTIVE
 
-        if self.limits['win'] != 0 and self.results['win'] == self.limits['win']:
-            return False
+        elif self.limits['win'] != 0 and self.results['win'] == self.limits['win']:
+            self.status = self.STATUS_INACTIVE
 
-        return True
+        elif self.limits['suspend'] != 0 and self.results['lose'] == self.limits['suspend']:
+            self.status = self.STATUS_SUSPENDED
 
     def get_bet_profit(self, number) -> Tuple[bool, float]:
         profit, win_types = 0, self.roulette.get_win_types(number)

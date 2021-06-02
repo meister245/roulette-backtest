@@ -34,11 +34,9 @@ class BetController:
             for bet_obj in self.get_bets_active():
                 result = bet_obj.run_bet(number, **kwargs)
 
-                result.update({
-                    'spin': idx + 1
-                })
-
+                result['spin'] = idx + 1
                 balance += result['profit']
+
                 bet_results.append(result)
 
             self.results.append(
@@ -47,7 +45,7 @@ class BetController:
         return tuple(self.results)
 
     def get_bets_active(self):
-        return [bet for bet in self.bets if bet.is_bet_active()]
+        return [bet for bet in self.bets if bet.status == bet.STATUS_ACTIVE]
 
     def get_bets_total_size(self):
         return sum([bet.size_current for bet in self.get_bets_active()])
