@@ -132,8 +132,9 @@ class ServiceController:
 
             for strategy, config in data['strategies'].items():
                 strategies[strategy] = {
+                    'strategyName': strategy,
                     **common,
-                    **config
+                    **config,
                 }
 
             return strategies

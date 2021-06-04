@@ -6,51 +6,50 @@ class BetController:
     roulette = Roulette()
 
     def __init__(self):
-        self.bets = []
-        self.results = []
         self.configs = []
+        self.results = []
+
+        self.active_bet = None
+        self.last_bet_size = 0
 
     def run_simulation(self, numbers, **kwargs):
         balance = kwargs.pop('balance', 1000.0)
 
         for idx, number in enumerate(numbers):
-            current_numbers = [x['number'] for x in self.results]
+            result = {}
+            current_numbers = numbers[:idx]
 
-            for config in self.configs:
-                active_bets = self.get_bets_active()
+            if self.active_bet is None:
+                self.active_bet = self.get_next_bet(current_numbers)
 
-                if len(active_bets) >= config['concurrentBetsLimit']:
-                    break
+            if self.active_bet and self.active_bet.size_current < balance:
+                result = self.active_bet.run(number, **kwargs)
+                self.last_bet_size = float(self.active_bet.size_current)
 
-                if self.is_strategy_match(config, current_numbers):
-                    bet_obj = get_bet(config)
-                    self.bets.append(bet_obj)
+                if self.active_bet.status == self.active_bet.STATUS_COMPLETE:
+                    self.last_bet_size = 0
 
-            if self.get_bets_total_size() > balance:
-                break
+                if self.active_bet.status != self.active_bet.STATUS_ACTIVE:
+                    self.active_bet = None
 
-            bet_results = []
-
-            for bet_obj in self.get_bets_active():
-                result = bet_obj.run_bet(number, **kwargs)
-
-                result['spin'] = idx + 1
                 balance += result['profit']
 
-                bet_results.append(result)
-
             self.results.append(
-                {'results': bet_results, 'balance': balance, 'number': number})
+                {'results': result, 'balance': balance, 'number': number, 'spin': idx + 1})
 
         return tuple(self.results)
 
-    def get_bets_active(self):
-        return [bet for bet in self.bets if bet.status == bet.STATUS_ACTIVE]
+    def get_next_bet(self, current_numbers):
+        for config in self.configs:
+            if self.is_strategy_match(config, current_numbers):
+                return get_bet(config)
 
-    def get_bets_total_size(self):
-        return sum([bet.size_current for bet in self.get_bets_active()])
+        return None
 
     def is_strategy_match(self, config, numbers):
+        if 'entry' in config['trigger']:
+            pass
+
         if 'pattern' in config['trigger']:
             matched = self.roulette.is_pattern_match(
                 config['trigger']['pattern'], numbers)

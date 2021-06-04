@@ -6,27 +6,27 @@ class DisplayController:
     def get_result_details(results):
         t_data = []
 
-        for x in results:
-            bets = [
-                f"{'W' if r['success'] else 'N' if r['success'] is None else 'F'}"
-                " - "
-                f"{round(r['size'], 2)}"
-                " - "
-                f"{','.join(r['type'])}"
-                for r in x['results']
-            ]
+        for result in results:
+            item = result['results']
 
-            bets = '---' if len(bets) == 0 else '\n'.join(bets)
+            if len(item) == 0:
+                bet, size, comments, profit = '---', '---', '---', 0
 
-            profit = sum([p['profit'] for p in x['results']])
+            else:
+                bet = ' - '.join([
+                    f"{'W' if item['success'] else 'N' if item['success'] is None else 'F'}",
+                    f"{round(item['size'], 2)}",
+                    f"{','.join(item['type'])}",
+                ])
 
-            size = sum([s['size'] for s in x['results']])
-            size = round(size, 2) if size > 0 else '---'
+                comments = item['strategy']
+                size, profit = item['size'], item['profit']
+                size = round(size, 2) if size > 0 else '---'
 
             status = 'W' if profit > 0 else 'L' if profit < 0 else '---'
 
-            t_data.append([x['balance'], bets, size,
-                           x['number'], status, profit])
+            t_data.append([result['spin'], result['balance'], bet, size,
+                           result['number'], status, profit, comments])
 
         return t_data
 
@@ -53,9 +53,12 @@ class DisplayController:
         t_data = []
 
         for filename, data in results.items():
-            total_bets = len([x for x in data if len(x['results']) > 0])
-            total_profit = data[-1]['balance'] - data[0]['balance']
-            win_ratio = round(cls.get_win_ratio(data), 2)
+            total_bets, total_profit, win_ratio = 0, 0, 0
+
+            if len(data) > 0:
+                total_bets = len([x for x in data if len(x['results']) > 0])
+                total_profit = data[-1]['balance'] - data[0]['balance']
+                win_ratio = cls.get_win_ratio(data)
 
             t_data.append([filename, len(data), total_bets,
                            total_profit, win_ratio])
@@ -64,8 +67,8 @@ class DisplayController:
 
     @classmethod
     def print_result_details(cls, bet_results):
-        t_headers = ['Balance', 'Bets', 'Bet Amount',
-                     'Number', 'Status', 'Profit']
+        t_headers = ['Spin', 'Balance', 'Bets', 'Bet Amount',
+                     'Number', 'Status', 'Profit', 'Comments']
         t_data = cls.get_result_details(bet_results)
 
         t = cls.tabulate_data(t_headers, t_data)
@@ -97,18 +100,13 @@ class DisplayController:
 
     @staticmethod
     def get_win_ratio(results):
-        results_total = []
-
-        for b in results:
-            if len(b['results']) != 0:
-                results_total.extend(b['results'])
-
-        win_results_count = len([k for k in results_total if k['success']])
-
+        results_total = [item['results'] for item in results if item['results']]
+        
         if len(results_total) == 0:
             return 0
 
-        return win_results_count / len(results_total) * 100
+        win_results_count = len([item for item in results_total if item['success']])
+        return round(win_results_count / len(results_total) * 100, 2)
 
     @staticmethod
     def get_longest_streak(results):

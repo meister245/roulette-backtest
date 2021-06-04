@@ -8,7 +8,7 @@ class BetSimple:
     roulette = Roulette()
 
     STATUS_ACTIVE = 'active'
-    STATUS_INACTIVE = 'inactive'
+    STATUS_COMPLETE = 'complete'
     STATUS_SUSPENDED = 'suspended'
 
     def __init__(self, config):
@@ -30,7 +30,7 @@ class BetSimple:
 
         self.status = self.STATUS_ACTIVE
 
-    def run_bet(self, number, **kwargs):
+    def run(self, number, **kwargs):
         result = self.get_bet_result(number)
 
         if result['success']:
@@ -39,19 +39,19 @@ class BetSimple:
         elif not result['success']:
             self.results['lose'] += 1
 
-        self.update_bet_status()
-
         if result['size'] > 0:
             self.update_bet_size(result, **kwargs)
+
+        self.update_bet_status()
 
         return result
 
     def update_bet_status(self):
         if self.limits['lose'] != 0 and self.results['lose'] == self.limits['lose']:
-            self.status = self.STATUS_INACTIVE
+            self.status = self.STATUS_COMPLETE
 
         elif self.limits['win'] != 0 and self.results['win'] == self.limits['win']:
-            self.status = self.STATUS_INACTIVE
+            self.status = self.STATUS_COMPLETE
 
         elif self.limits['suspend'] != 0 and self.results['lose'] == self.limits['suspend']:
             self.status = self.STATUS_SUSPENDED
@@ -80,7 +80,8 @@ class BetSimple:
             'size': float(self.size_current),
             'profit': profit,
             'type': self.config['bets'],
-            'success': win_loss
+            'success': win_loss,
+            'strategy': self.config['strategyName']
         }
 
         return result
