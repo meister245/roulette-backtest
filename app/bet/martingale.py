@@ -4,8 +4,8 @@ from .simple import BetSimple
 class BetMartingale(BetSimple):
     name = 'martingale'
 
-    def __init__(self, config):
-        BetSimple.__init__(self, config)
+    def __init__(self, config, bet_size=0):
+        BetSimple.__init__(self, config, bet_size=bet_size)
 
     def update_bet_size(self, result, **kwargs):
         table_limit = kwargs.get('tableLimit', 150.0)

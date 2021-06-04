@@ -7,11 +7,11 @@ BETS = (
 )
 
 
-def get_bet(config) -> BETS:
+def get_bet(config, bet_size) -> BETS:
     strategy_name = config.get('strategy')
 
     for bet_cls in BETS:
         if bet_cls.name == strategy_name:
-            return bet_cls(config)
+            return bet_cls(config, bet_size)
 
     raise ValueError(f'invalid bet strategy name - {strategy_name}')

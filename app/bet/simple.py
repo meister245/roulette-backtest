@@ -11,16 +11,18 @@ class BetSimple:
     STATUS_COMPLETE = 'complete'
     STATUS_SUSPENDED = 'suspended'
 
-    def __init__(self, config):
+    def __init__(self, config, bet_size=0):
         self.config = config
 
-        self.size_current = float(config['chipSize'])
         self.size_original = float(config['chipSize'])
 
+        self.size_current = bet_size if bet_size > 0 else float(
+            config['chipSize'])
+
         self.limits = {
-            'win': int(config.get('stopWinLimit', 0)),
-            'lose': int(config.get('stopLossLimit', 0)),
-            'suspend': int(config.get('stopSuspendLimit', 0))
+            'win': int(config['limits'].get('stopWin', 0)),
+            'lose': int(config['limits'].get('stopLoss', 0)),
+            'suspend': int(config['limits'].get('suspendLoss', 0))
         }
 
         self.results = {
