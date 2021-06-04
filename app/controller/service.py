@@ -86,7 +86,7 @@ class ServiceController:
             for name in files:
                 filepath = os.path.join(root, name)
 
-                if strategy_filename in filepath:
+                if filepath.endswith(f'{strategy_filename}.json'):
                     return self.parse_strategy_file(filepath)
 
         raise Exception(
