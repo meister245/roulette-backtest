@@ -15,6 +15,7 @@ class BetSimple:
         self.config = config
 
         self.size_original = float(config['chipSize'])
+        self.strategy_name = str(config['strategyName'])
 
         self.size_current = bet_size if bet_size > 0 else float(
             config['chipSize'])
@@ -83,7 +84,7 @@ class BetSimple:
             'profit': profit,
             'type': self.config['bets'],
             'success': win_loss,
-            'strategy': self.config['strategyName']
+            'strategy': self.strategy_name
         }
 
         return result

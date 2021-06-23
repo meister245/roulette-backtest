@@ -13,7 +13,9 @@ class BetController:
         self.results = []
 
         self.active_bet = None
+
         self.last_bet_size = 0
+        self.last_bet_strategy = None
 
         self.mode = self.MODE_NORMAL
 
@@ -30,12 +32,14 @@ class BetController:
                 result = self.active_bet.run(number, **kwargs)
 
                 if self.active_bet and self.active_bet.status == self.active_bet.STATUS_COMPLETE:
-                    self.last_bet_size = 0
                     self.mode = self.MODE_NORMAL
+                    self.last_bet_size = 0
+                    self.last_bet_strategy = None
 
                 if self.active_bet and self.active_bet.status == self.active_bet.STATUS_SUSPENDED:
-                    self.last_bet_size = float(self.active_bet.size_current)
                     self.mode = self.MODE_SUSPENDED
+                    self.last_bet_size = float(self.active_bet.size_current)
+                    self.last_bet_strategy = str(self.active_bet.strategy_name)
 
                 if self.active_bet and self.active_bet.status != self.active_bet.STATUS_ACTIVE:
                     self.active_bet = None
@@ -55,8 +59,11 @@ class BetController:
         return None
 
     def is_strategy_match(self, config, numbers):
-        if self.mode == self.MODE_SUSPENDED and 'suspended' not in config['trigger']:
-            return False
+        if self.mode == self.MODE_SUSPENDED:
+            parents = config['trigger'].get('parent', [])
+
+            if self.last_bet_strategy not in parents:
+                return False
 
         if 'pattern' in config['trigger']:
             matched = self.roulette.is_pattern_match(

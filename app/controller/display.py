@@ -57,7 +57,7 @@ class DisplayController:
 
             if len(data) > 0:
                 total_bets = len([x for x in data if len(x['results']) > 0])
-                total_profit = data[-1]['balance'] - data[0]['balance']
+                total_profit = round(data[-1]['balance'] - data[0]['balance'], 2)
                 win_ratio = cls.get_win_ratio(data)
 
             t_data.append([filename, len(data), total_bets,

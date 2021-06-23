@@ -25,6 +25,9 @@ def parse_args():
                         metavar='NUMBER', help='number of roulette spins played')
     parser.add_argument('--backtest', action='store', type=str, default=False,
                         metavar='BACKTEST', help='filename for backtest data')
+    parser.add_argument('--upscale', action='store', type=int, default=0,
+                        metavar='NUMBER', help='extend backtest sample data spins to given number, \
+                            by randomly mixing with other samples')
     parser.add_argument('--backtest-filter', action='store', type=str, default=False,
                         metavar='BACKTEST_FILTER', help='filter processing for backtest files')
 

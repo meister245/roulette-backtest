@@ -18,7 +18,8 @@ class ServiceController:
         self.backtest_dir = backtest_dir
 
     def run_simulation(self, **kwargs) -> None:
-        mode, spins = kwargs.pop('mode', 'rng'), kwargs.pop('spins', 0)
+        mode = kwargs.pop('mode', 'rng')
+        spins, upscale = kwargs.pop('spins', 0), kwargs.pop('upscale', 0)
 
         backtest_filename = kwargs.pop('backtest', False)
         strategy_filename = kwargs.pop('strategy', 'sample')
@@ -40,7 +41,7 @@ class ServiceController:
             backtest_filter = kwargs.pop('backtest_filter', False)
 
             backtest_numbers = self.get_backtest_numbers(
-                backtest_filter=backtest_filter, spins=spins)
+                backtest_filter=backtest_filter, spins=spins, upscale=upscale)
 
             self.run_simulation_backtest(
                 bet_configs, backtest_numbers, **kwargs)
@@ -104,7 +105,7 @@ class ServiceController:
         raise Exception(
             f'no filename matched for keyword {backtest_filename} found for backtest data')
 
-    def get_backtest_numbers(self, backtest_filter: str = False, spins: int = 0):
+    def get_backtest_numbers(self, backtest_filter: str = False, spins: int = 0, upscale: int = 5000):
         backtest_numbers = {}
 
         for root, _, files in os.walk(self.backtest_dir):
@@ -119,6 +120,15 @@ class ServiceController:
 
                 filepath = re.sub(self.backtest_dir, '', filepath)
                 backtest_numbers[filepath] = numbers
+
+        if upscale != 0:
+            numbers_copy = dict(backtest_numbers)
+
+            for key, numbers in numbers_copy.items():
+                while len(backtest_numbers[key]) < upscale:
+                    extra_numbers = random.choice(list(numbers_copy.values()))
+                    backtest_numbers[key].extend(extra_numbers)
+                    backtest_numbers[key] = backtest_numbers[key][:upscale]
 
         return collections.OrderedDict(sorted(backtest_numbers.items()))
 
