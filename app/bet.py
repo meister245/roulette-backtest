@@ -1,10 +1,9 @@
 from typing import Tuple
 
-from ..roulette import Roulette
+from .roulette import Roulette
 
 
-class BetSimple:
-    name = 'simple'
+class Bet:
     roulette = Roulette()
 
     STATUS_ACTIVE = 'active'
@@ -59,6 +58,18 @@ class BetSimple:
         elif self.limits['suspend'] != 0 and self.results['lose'] == self.limits['suspend']:
             self.status = self.STATUS_SUSPENDED
 
+    def update_bet_size(self, result, **kwargs):
+        table_limit = kwargs.get('tableLimit', 150.0)
+
+        if result['success']:
+            self.size_current = self.size_original
+
+        elif not result['success']:
+            new_size = self.size_current * self.config['progressionMultiplier']
+
+            if new_size <= table_limit:
+                self.size_current = new_size
+
     def get_bet_profit(self, number) -> Tuple[bool, float]:
         profit, win_types = 0, self.roulette.get_win_types(number)
 
@@ -88,12 +99,3 @@ class BetSimple:
         }
 
         return result
-
-    def update_bet_size(self, result, **kwargs):
-        table_limit = kwargs.get('tableLimit', 150.0)
-
-        if self.size_current < table_limit:
-            self.size_current = self.size_current
-
-        else:
-            self.size_current = table_limit

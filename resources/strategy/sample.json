@@ -1,32 +1,51 @@
 {
     "common": {
         "chipSize": 1.0,
-        "tableLimit": 250,
-        "strategy": "martingale"
+        "tableLimit": 250
     },
     "strategies": {
         "redLowOccurrence": {
-            "bets": ["red"],
+            "bets": [
+                "red"
+            ],
             "progressionMultiplier": 2,
             "limits": {
                 "stopWin": 1,
                 "stopLoss": 8
             },
             "trigger": {
-              "pattern": ["black", "black"],
-              "distribution": ["red", 100, 45, "lowerEqual"]
+                "pattern": [
+                    "black",
+                    "black"
+                ],
+                "distribution": [
+                    "red",
+                    100,
+                    45,
+                    "lowerEqual"
+                ]
             }
         },
         "blackLowOccurrence": {
-            "bets": ["black"],
+            "bets": [
+                "black"
+            ],
             "progressionMultiplier": 2,
             "limits": {
                 "stopWin": 1,
                 "stopLoss": 8
             },
             "trigger": {
-              "pattern": ["red", "red"],
-              "distribution": ["black", 100, 45, "lowerEqual"]
+                "pattern": [
+                    "red",
+                    "red"
+                ],
+                "distribution": [
+                    "black",
+                    100,
+                    45,
+                    "lowerEqual"
+                ]
             }
         }
     }

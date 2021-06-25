@@ -1,4 +1,4 @@
-from ..bet import get_bet
+from ..bet import Bet
 from ..roulette import Roulette
 
 
@@ -54,7 +54,7 @@ class BetController:
     def get_next_bet(self, current_numbers):
         for config in self.configs:
             if self.is_strategy_match(config, current_numbers):
-                return get_bet(config=config, bet_size=float(self.last_bet_size))
+                return Bet(config=config, bet_size=float(self.last_bet_size))
 
         return None
 
