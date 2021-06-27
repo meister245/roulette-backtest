@@ -13,6 +13,7 @@ class BetController:
         self.results = []
 
         self.active_bet = None
+        self.progression_count = 1
 
         self.last_bet_size = 0
         self.last_bet_strategy = None
@@ -29,7 +30,14 @@ class BetController:
                 self.active_bet = self.get_next_bet(current_numbers)
 
             if self.active_bet and self.active_bet.size_current < balance:
-                result = self.active_bet.run(number, **kwargs)
+                progression_count = int(self.progression_count)
+                result = self.active_bet.run(number, progression_count, **kwargs)
+
+                if self.active_bet.status == self.active_bet.STATUS_ACTIVE:
+                    self.progression_count += 1
+
+                elif self.active_bet.status == self.active_bet.STATUS_COMPLETE:
+                    self.progression_count = 1
 
                 if self.active_bet and self.active_bet.status == self.active_bet.STATUS_COMPLETE:
                     self.mode = self.MODE_NORMAL

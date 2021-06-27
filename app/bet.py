@@ -13,6 +13,8 @@ class Bet:
     def __init__(self, config, bet_size=0):
         self.config = config
 
+        self.last_result = None
+        self.status = self.STATUS_ACTIVE
         self.size_original = float(config['chipSize'])
         self.strategy_name = str(config['strategyName'])
 
@@ -25,50 +27,62 @@ class Bet:
             'suspend': int(config['limits'].get('suspendLoss', 0))
         }
 
-        self.results = {
+        self.bet_results = {
             'win': 0,
             'lose': 0
         }
 
-        self.status = self.STATUS_ACTIVE
+    def run(self, number, progression_count, **kwargs):
+        self.update_bet_size(progression_count, **kwargs)
 
-    def run(self, number, **kwargs):
         result = self.get_bet_result(number)
 
-        if result['success']:
-            self.results['win'] += 1
-
-        elif not result['success']:
-            self.results['lose'] += 1
-
-        if result['size'] > 0:
-            self.update_bet_size(result, **kwargs)
-
+        self.update_bet_results(result)
         self.update_bet_status()
+
+        self.last_result = result
 
         return result
 
-    def update_bet_status(self):
-        if self.limits['lose'] != 0 and self.results['lose'] == self.limits['lose']:
-            self.status = self.STATUS_COMPLETE
-
-        elif self.limits['win'] != 0 and self.results['win'] == self.limits['win']:
-            self.status = self.STATUS_COMPLETE
-
-        elif self.limits['suspend'] != 0 and self.results['lose'] == self.limits['suspend']:
-            self.status = self.STATUS_SUSPENDED
-
-    def update_bet_size(self, result, **kwargs):
-        table_limit = kwargs.get('tableLimit', 150.0)
-
+    def update_bet_results(self, result):
         if result['success']:
-            self.size_current = self.size_original
+            self.bet_results['win'] += 1
 
         elif not result['success']:
-            new_size = self.size_current * self.config['progressionMultiplier']
+            self.bet_results['lose'] += 1
 
-            if new_size <= table_limit:
-                self.size_current = new_size
+    def update_bet_status(self):
+        if self.limits['lose'] != 0 and self.bet_results['lose'] == self.limits['lose']:
+            self.status = self.STATUS_COMPLETE
+
+        elif self.limits['win'] != 0 and self.bet_results['win'] == self.limits['win']:
+            self.status = self.STATUS_COMPLETE
+
+        elif self.limits['suspend'] != 0 and self.bet_results['lose'] == self.limits['suspend']:
+            self.status = self.STATUS_SUSPENDED
+
+    def update_bet_size(self, progression_count, **kwargs):
+        table_limit = kwargs.get('tableLimit', 150.0)
+
+        if self.last_result is None:
+            return
+
+        if self.last_result['success']:
+            self.size_current = self.size_original
+
+        elif not self.last_result['success']:
+            if 'progressionMultiplier' in self.config:
+                new_size = self.size_current * \
+                    self.config['progressionMultiplier']
+
+                if new_size <= table_limit:
+                    self.size_current = new_size
+
+            elif 'progressionCustom' in self.config:
+                new_size = self.config['progressionCustom'][progression_count - 1]
+
+                if new_size <= table_limit:
+                    self.size_current = new_size
 
     def get_bet_profit(self, number) -> Tuple[bool, float]:
         profit, win_types = 0, self.roulette.get_win_types(number)
