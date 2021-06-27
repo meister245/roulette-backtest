@@ -92,22 +92,29 @@ class Roulette:
         return False
 
     @classmethod
-    def is_distribution_match(cls, bet_type, action, percentage, numbers, n=100):
-        result = cls.analyze_last_n_numbers(bet_type, numbers, n=n)
+    def is_distribution_match(cls, config, numbers):
+        result = True
 
-        if result is None:
-            return False
+        for distribution in config:
+            bet_type, sample_size, percentage, action = distribution
+            res_percent = cls.analyze_last_n_numbers(bet_type, numbers, n=sample_size)
 
-        if action in ['equal', 'higherEqual', 'lowerEqual'] and result == percentage:
-            return True
+            if res_percent is None:
+                result = False
 
-        if action in ['lower', 'lowerEqual'] and result < percentage:
-            return True
+            elif action in ['equal', 'higherEqual', 'lowerEqual'] and res_percent == percentage:
+                result = result and True
 
-        if action in ['higher', 'higherEqual'] and result > percentage:
-            return True
+            elif action in ['lower', 'lowerEqual'] and res_percent < percentage:
+                result = result and True
 
-        return False
+            elif action in ['higher', 'higherEqual'] and res_percent > percentage:
+                result = result and True
+
+            else:
+                result = False
+
+        return result
 
     @classmethod
     def get_bet_pattern(cls, bet_pattern: str) -> tuple:

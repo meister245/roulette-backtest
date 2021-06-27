@@ -73,10 +73,8 @@ class BetController:
                 return False
 
         if 'distribution' in config['trigger']:
-            bet_type, sample_size, percentage, action = config['trigger']['distribution']
-
             matched = self.roulette.is_distribution_match(
-                bet_type, action, percentage, numbers, n=sample_size
+                config['trigger']['distribution'], numbers
             )
 
             if not matched:
