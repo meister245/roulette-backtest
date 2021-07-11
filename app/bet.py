@@ -67,10 +67,12 @@ class Bet:
             self.size_current = table_limit
 
     def get_bet_profit(self, number) -> Tuple[bool, float]:
+        is_any_bet_winning = False
         profit, win_types = 0, self.roulette.get_win_types(number)
 
         for bet_type in self.config['bets']:
             if bet_type in win_types:
+                is_any_bet_winning = True
                 bet_type = bet_type.split('-', 1).pop(0)
                 payout_multiplier = self.roulette.payout_mapping[bet_type]
 
@@ -80,6 +82,9 @@ class Bet:
                 profit -= self.size_current
 
         status = True if profit > 0 else False if profit < 0 else None
+
+        if status is None and is_any_bet_winning:
+            status = True
 
         return status, round(profit, 2)
 
