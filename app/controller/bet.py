@@ -15,7 +15,6 @@ class BetController:
         self.active_bet = None
         self.progression_count = 1
 
-        self.last_bet_size = 0
         self.last_bet_strategy = None
 
         self.mode = self.MODE_NORMAL
@@ -41,12 +40,10 @@ class BetController:
 
                 if self.active_bet and self.active_bet.status == self.active_bet.STATUS_COMPLETE:
                     self.mode = self.MODE_NORMAL
-                    self.last_bet_size = 0
                     self.last_bet_strategy = None
 
                 if self.active_bet and self.active_bet.status == self.active_bet.STATUS_SUSPENDED:
                     self.mode = self.MODE_SUSPENDED
-                    self.last_bet_size = float(self.active_bet.size_current)
                     self.last_bet_strategy = str(self.active_bet.strategy_name)
 
                 if self.active_bet and self.active_bet.status != self.active_bet.STATUS_ACTIVE:
@@ -62,7 +59,7 @@ class BetController:
     def get_next_bet(self, current_numbers):
         for config in self.configs:
             if self.is_strategy_match(config, current_numbers):
-                return Bet(config=config, bet_size=float(self.last_bet_size))
+                return Bet(config=config)
 
         return None
 

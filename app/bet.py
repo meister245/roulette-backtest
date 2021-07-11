@@ -10,16 +10,14 @@ class Bet:
     STATUS_COMPLETE = 'complete'
     STATUS_SUSPENDED = 'suspended'
 
-    def __init__(self, config, bet_size=0):
+    def __init__(self, config):
         self.config = config
 
         self.last_result = None
         self.status = self.STATUS_ACTIVE
-        self.size_original = float(config['chipSize'])
         self.strategy_name = str(config['strategyName'])
 
-        self.size_current = bet_size if bet_size > 0 else float(
-            config['chipSize'])
+        self.size_current = 0
 
         self.limits = {
             'win': int(config['limits'].get('stopWin', 0)),
@@ -63,26 +61,10 @@ class Bet:
 
     def update_bet_size(self, progression_count, **kwargs):
         table_limit = kwargs.get('tableLimit', 150.0)
+        self.size_current = self.config['progression'][progression_count - 1]
 
-        if self.last_result is None:
-            return
-
-        if self.last_result['success']:
-            self.size_current = self.size_original
-
-        elif not self.last_result['success']:
-            if 'progressionMultiplier' in self.config:
-                new_size = self.size_current * \
-                    self.config['progressionMultiplier']
-
-                if new_size <= table_limit:
-                    self.size_current = new_size
-
-            elif 'progressionCustom' in self.config:
-                new_size = self.config['progressionCustom'][progression_count - 1]
-
-                if new_size <= table_limit:
-                    self.size_current = new_size
+        if self.size_current > table_limit:
+            self.size_current = table_limit
 
     def get_bet_profit(self, number) -> Tuple[bool, float]:
         profit, win_types = 0, self.roulette.get_win_types(number)
