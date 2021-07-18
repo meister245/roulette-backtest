@@ -152,16 +152,9 @@ class ServiceController:
     @staticmethod
     def parse_backtest_file(filepath, spins=0):
         with open(filepath, 'r') as f:
-            numbers = []
+            numbers = json.loads(f.read())
 
-            for row in f.read().split('\n'):
-                if not re.search(r'^([0-9]{1,2}(?:,)?)+$', row):
-                    raise ValueError(
-                        f'invalid data format in file - {filepath}')
-
-                numbers.extend([int(x) for x in row.split(',')])
-
-                if spins != 0 and len(numbers) >= spins:
-                    break
+            if spins > 0:
+                return numbers[:spins]
 
             return numbers
